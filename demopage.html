@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAT Generator — Industrial Control Systems</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0d0f12;
+    --bg2:      #13161b;
+    --bg3:      #1a1e26;
+    --border:   #252b36;
+    --amber:    #f5a623;
+    --amber-dim:#9a6610;
+    --green:    #3ecf6e;
+    --red:      #e05252;
+    --blue:     #4a9eff;
+    --text:     #c8d0dc;
+    --text-dim: #606878;
+    --text-hi:  #edf0f5;
+    --mono:     'IBM Plex Mono', monospace;
+    --sans:     'IBM Plex Sans', sans-serif;
+    --cond:     'IBM Plex Sans Condensed', sans-serif;
+  }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: var(–sans);
+font-size: 13px;
+height: 100vh;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 0 20px;
+height: 48px;
+background: var(–bg2);
+border-bottom: 1px solid var(–border);
+flex-shrink: 0;
+}
+.topbar-brand {
+display: flex;
+align-items: center;
+gap: 12px;
+}
+.brand-mark {
+width: 28px; height: 28px;
+background: var(–amber);
+clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%);
+display: flex; align-items: center; justify-content: center;
+}
+.brand-name {
+font-family: var(–cond);
+font-weight: 700;
+font-size: 15px;
+letter-spacing: 0.08em;
+color: var(–text-hi);
+text-transform: uppercase;
+}
+.brand-sub {
+font-family: var(–mono);
+font-size: 10px;
+color: var(–amber-dim);
+letter-spacing: 0.12em;
+}
+.topbar-meta {
+display: flex;
+align-items: center;
+gap: 24px;
+}
+.meta-item {
+display: flex;
+flex-direction: column;
+align-items: flex-end;
+}
+.meta-label { font-size: 9px; color: var(–text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+.meta-value { font-family: var(–mono); font-size: 11px; color: var(–text-hi); }
+.status-dot {
+width: 8px; height: 8px;
+border-radius: 50%;
+background: var(–green);
+box-shadow: 0 0 6px var(–green);
+animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── LAYOUT ── */
+.layout {
+display: flex;
+flex: 1;
+overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+width: 240px;
+background: var(–bg2);
+border-right: 1px solid var(–border);
+display: flex;
+flex-direction: column;
+overflow-y: auto;
+flex-shrink: 0;
+}
+.sidebar-section {
+padding: 14px 16px 8px;
+border-bottom: 1px solid var(–border);
+}
+.sidebar-label {
+font-family: var(–mono);
+font-size: 9px;
+letter-spacing: 0.14em;
+color: var(–amber-dim);
+text-transform: uppercase;
+margin-bottom: 10px;
+}
+.project-card {
+background: var(–bg3);
+border: 1px solid var(–border);
+border-radius: 3px;
+padding: 10px;
+}
+.project-name {
+font-family: var(–cond);
+font-weight: 600;
+font-size: 13px;
+color: var(–text-hi);
+margin-bottom: 6px;
+}
+.project-field {
+display: flex;
+justify-content: space-between;
+margin-bottom: 3px;
+}
+.pf-key { color: var(–text-dim); font-size: 10px; }
+.pf-val { font-family: var(–mono); font-size: 10px; color: var(–text); }
+.pf-val.hi { color: var(–amber); }
+
+.nav-item {
+display: flex;
+align-items: center;
+gap: 10px;
+padding: 8px 10px;
+border-radius: 3px;
+cursor: pointer;
+transition: background 0.15s;
+margin-bottom: 2px;
+}
+.nav-item:hover { background: var(–bg3); }
+.nav-item.active { background: rgba(245,166,35,0.12); border-left: 2px solid var(–amber); padding-left: 8px; }
+.nav-icon {
+width: 20px; height: 20px;
+font-size: 12px;
+display: flex; align-items: center; justify-content: center;
+color: var(–text-dim);
+}
+.nav-item.active .nav-icon { color: var(–amber); }
+.nav-text { font-size: 12px; color: var(–text); }
+.nav-item.active .nav-text { color: var(–text-hi); }
+.nav-badge {
+margin-left: auto;
+font-family: var(–mono);
+font-size: 9px;
+padding: 1px 5px;
+border-radius: 2px;
+background: var(–bg3);
+color: var(–text-dim);
+}
+.nav-item.active .nav-badge { background: rgba(245,166,35,0.2); color: var(–amber); }
+
+/* ── MAIN ── */
+.main {
+flex: 1;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+}
+
+/* ── TABS ── */
+.tab-bar {
+display: flex;
+align-items: flex-end;
+gap: 2px;
+padding: 0 20px;
+background: var(–bg2);
+border-bottom: 1px solid var(–border);
+height: 40px;
+flex-shrink: 0;
+}
+.tab {
+padding: 0 16px;
+height: 38px;
+display: flex;
+align-items: center;
+gap: 7px;
+cursor: pointer;
+border-bottom: 2px solid transparent;
+font-size: 12px;
+color: var(–text-dim);
+transition: color 0.15s;
+white-space: nowrap;
+}
+.tab:hover { color: var(–text); }
+.tab.active {
+color: var(–amber);
+border-bottom-color: var(–amber);
+}
+.tab-dot { width:6px; height:6px; border-radius:50%; background:currentColor; opacity:0.6; }
+
+/* ── CONTENT PANELS ── */
+.content {
+flex: 1;
+overflow-y: auto;
+padding: 20px;
+}
+
+.panel { display: none; }
+.panel.active { display: block; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+
+/* ── SECTION HEADER ── */
+.section-header {
+display: flex;
+align-items: baseline;
+gap: 12px;
+margin-bottom: 16px;
+}
+.section-title {
+font-family: var(–cond);
+font-weight: 700;
+font-size: 16px;
+color: var(–text-hi);
+text-transform: uppercase;
+letter-spacing: 0.06em;
+}
+.section-sub {
+font-family: var(–mono);
+font-size: 10px;
+color: var(–text-dim);
+}
+.section-actions {
+margin-left: auto;
+display: flex;
+gap: 8px;
+}
+
+/* ── BUTTONS ── */
+.btn {
+display: inline-flex;
+align-items: center;
+gap: 6px;
+padding: 6px 14px;
+border-radius: 3px;
+border: 1px solid var(–border);
+background: var(–bg3);
+color: var(–text);
+font-family: var(–sans);
+font-size: 12px;
+cursor: pointer;
+transition: all 0.15s;
+}
+.btn:hover { border-color: var(–text-dim); color: var(–text-hi); }
+.btn-primary {
+background: var(–amber);
+border-color: var(–amber);
+color: #000;
+font-weight: 600;
+}
+.btn-primary:hover { background: #ffba45; border-color: #ffba45; color: #000; }
+.btn-ghost { background: transparent; }
+
+/* ── TAG TABLE ── */
+.data-table {
+width: 100%;
+border-collapse: collapse;
+font-family: var(–mono);
+font-size: 11px;
+}
+.data-table th {
+text-align: left;
+padding: 7px 10px;
+background: var(–bg3);
+color: var(–text-dim);
+font-size: 9px;
+letter-spacing: 0.1em;
+text-transform: uppercase;
+border-bottom: 1px solid var(–border);
+font-family: var(–sans);
+font-weight: 500;
+white-space: nowrap;
+}
+.data-table td {
+padding: 7px 10px;
+border-bottom: 1px solid var(–border);
+vertical-align: middle;
+}
+.data-table tr:hover td { background: rgba(255,255,255,0.02); }
+.data-table tr.selected td { background: rgba(245,166,35,0.06); }
+
+.tag-name { color: var(–amber); font-weight: 500; }
+.addr { color: var(–blue); }
+.eu { color: var(–green); }
+.dtype { color: var(–text-dim); }
+
+.badge {
+display: inline-block;
+padding: 1px 6px;
+border-radius: 2px;
+font-size: 9px;
+font-family: var(–sans);
+font-weight: 600;
+letter-spacing: 0.06em;
+text-transform: uppercase;
+}
+.badge-ai { background: rgba(74,158,255,0.15); color: var(–blue); }
+.badge-ao { background: rgba(62,207,110,0.15); color: var(–green); }
+.badge-di { background: rgba(245,166,35,0.15); color: var(–amber); }
+.badge-do { background: rgba(224,82,82,0.15); color: var(–red); }
+
+/* ── TEST CONFIG ── */
+.config-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 16px;
+margin-bottom: 16px;
+}
+.config-card {
+background: var(–bg2);
+border: 1px solid var(–border);
+border-radius: 3px;
+padding: 14px;
+}
+.config-card-title {
+font-family: var(–cond);
+font-weight: 600;
+font-size: 11px;
+letter-spacing: 0.08em;
+text-transform: uppercase;
+color: var(–text-dim);
+margin-bottom: 12px;
+}
+.field-row {
+display: flex;
+flex-direction: column;
+gap: 4px;
+margin-bottom: 10px;
+}
+.field-label {
+font-size: 10px;
+color: var(–text-dim);
+text-transform: uppercase;
+letter-spacing: 0.08em;
+}
+.field-control {
+background: var(–bg3);
+border: 1px solid var(–border);
+border-radius: 2px;
+padding: 5px 8px;
+color: var(–text-hi);
+font-family: var(–mono);
+font-size: 12px;
+width: 100%;
+outline: none;
+transition: border-color 0.15s;
+}
+.field-control:focus { border-color: var(–amber); }
+select.field-control { cursor: pointer; }
+option { background: var(–bg3); }
+
+/* test type selector */
+.test-type-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 8px;
+margin-bottom: 16px;
+}
+.test-type-card {
+background: var(–bg2);
+border: 1px solid var(–border);
+border-radius: 3px;
+padding: 12px;
+cursor: pointer;
+transition: all 0.15s;
+}
+.test-type-card:hover { border-color: var(–text-dim); }
+.test-type-card.selected { border-color: var(–amber); background: rgba(245,166,35,0.06); }
+.tt-icon { font-size: 20px; margin-bottom: 6px; }
+.tt-name { font-family: var(–cond); font-weight: 600; font-size: 12px; color: var(–text-hi); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
+.tt-desc { font-size: 10px; color: var(–text-dim); line-height: 1.4; }
+.test-type-card.selected .tt-name { color: var(–amber); }
+
+/* ── DOCUMENT PREVIEW ── */
+.doc-frame {
+background: #fff;
+color: #111;
+border-radius: 3px;
+max-width: 900px;
+margin: 0 auto;
+font-family: ‘Times New Roman’, serif;
+font-size: 12px;
+padding: 48px;
+box-shadow: 0 4px 40px rgba(0,0,0,0.5);
+}
+.doc-header {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+border-bottom: 2px solid #111;
+padding-bottom: 12px;
+margin-bottom: 16px;
+}
+.doc-logo-block .co-name {
+font-family: var(–cond);
+font-size: 18px;
+font-weight: 700;
+letter-spacing: 0.04em;
+color: #111;
+}
+.doc-logo-block .co-sub { font-size: 9px; color: #555; letter-spacing: 0.08em; text-transform: uppercase; }
+.doc-meta-block { text-align: right; font-size: 10px; color: #333; }
+.doc-meta-block .doc-num { font-weight: 700; font-size: 12px; }
+.doc-title-block { text-align: center; margin-bottom: 14px; }
+.doc-title { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+.doc-subtitle { font-size: 11px; color: #444; margin-top: 2px; }
+
+.doc-info-table {
+width: 100%;
+border-collapse: collapse;
+font-size: 11px;
+margin-bottom: 16px;
+}
+.doc-info-table td { padding: 4px 8px; border: 1px solid #ccc; }
+.doc-info-table td:first-child { background: #f0f0f0; font-weight: 600; width: 160px; }
+
+.doc-section-title {
+font-size: 11px;
+font-weight: 700;
+text-transform: uppercase;
+letter-spacing: 0.08em;
+background: #222;
+color: #fff;
+padding: 5px 8px;
+margin-bottom: 0;
+}
+
+.doc-test-table {
+width: 100%;
+border-collapse: collapse;
+font-size: 10px;
+margin-bottom: 16px;
+font-family: Arial, sans-serif;
+}
+.doc-test-table th {
+background: #555;
+color: #fff;
+padding: 5px 6px;
+text-align: center;
+border: 1px solid #333;
+font-size: 9px;
+text-transform: uppercase;
+letter-spacing: 0.04em;
+}
+.doc-test-table td {
+padding: 5px 6px;
+border: 1px solid #bbb;
+text-align: center;
+vertical-align: middle;
+}
+.doc-test-table tr:nth-child(even) td { background: #f8f8f8; }
+.doc-test-table .row-label { text-align: left; font-weight: 600; background: #eee !important; }
+.result-box {
+width: 60px; height: 18px;
+border: 1px solid #999;
+display: inline-block;
+background: #fff;
+}
+
+.doc-step-table {
+width: 100%;
+border-collapse: collapse;
+font-size: 10px;
+margin-bottom: 16px;
+font-family: Arial, sans-serif;
+}
+.doc-step-table th {
+background: #555; color: #fff;
+padding: 5px 6px;
+text-align: left;
+border: 1px solid #333;
+font-size: 9px;
+text-transform: uppercase;
+}
+.doc-step-table td {
+padding: 6px 8px;
+border: 1px solid #bbb;
+vertical-align: top;
+}
+.doc-step-table tr:nth-child(even) td { background: #f8f8f8; }
+.step-num { font-weight: 700; text-align: center; width: 30px; }
+.step-pass { width: 60px; text-align: center; }
+.pass-box { width: 50px; height: 16px; border: 1px solid #999; display: inline-block; }
+
+.sig-block {
+display: grid;
+grid-template-columns: 1fr 1fr 1fr;
+gap: 20px;
+margin-top: 20px;
+border-top: 1px solid #bbb;
+padding-top: 12px;
+}
+.sig-field { border-bottom: 1px solid #555; height: 28px; margin-bottom: 4px; }
+.sig-label { font-size: 9px; color: #555; text-transform: uppercase; letter-spacing: 0.06em; }
+
+.doc-note {
+font-size: 9px;
+color: #555;
+border-left: 2px solid #bbb;
+padding-left: 6px;
+margin-bottom: 8px;
+font-style: italic;
+}
+
+/* ── STEP PROGRESS ── */
+.step-bar {
+display: flex;
+align-items: center;
+gap: 0;
+padding: 10px 20px;
+background: var(–bg2);
+border-bottom: 1px solid var(–border);
+flex-shrink: 0;
+}
+.step-item {
+display: flex;
+align-items: center;
+gap: 8px;
+cursor: pointer;
+padding: 4px 14px 4px 0;
+}
+.step-num-badge {
+width: 22px; height: 22px;
+border-radius: 50%;
+border: 1px solid var(–border);
+display: flex; align-items: center; justify-content: center;
+font-family: var(–mono);
+font-size: 10px;
+color: var(–text-dim);
+flex-shrink: 0;
+}
+.step-item.done .step-num-badge { background: var(–green); border-color: var(–green); color: #000; }
+.step-item.active .step-num-badge { background: var(–amber); border-color: var(–amber); color: #000; font-weight: 600; }
+.step-label { font-size: 11px; color: var(–text-dim); white-space: nowrap; }
+.step-item.active .step-label { color: var(–text-hi); }
+.step-item.done .step-label { color: var(–text); }
+.step-sep { flex: 1; height: 1px; background: var(–border); margin: 0 4px; min-width: 20px; }
+
+/* ── MISC ── */
+.divider {
+height: 1px;
+background: var(–border);
+margin: 16px 0;
+}
+.info-row {
+display: flex;
+gap: 20px;
+margin-bottom: 16px;
+}
+.info-chip {
+display: flex;
+align-items: center;
+gap: 6px;
+padding: 6px 10px;
+background: var(–bg3);
+border: 1px solid var(–border);
+border-radius: 3px;
+font-size: 11px;
+}
+.info-chip-label { color: var(–text-dim); }
+.info-chip-val { font-family: var(–mono); color: var(–text-hi); }
+.info-chip-val.amber { color: var(–amber); }
+
+.scrollable { overflow-x: auto; }
+
+.generate-bar {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 12px 20px;
+background: var(–bg2);
+border-top: 1px solid var(–border);
+flex-shrink: 0;
+}
+.generate-info { font-size: 11px; color: var(–text-dim); }
+.generate-info span { color: var(–text-hi); font-family: var(–mono); }
+
+/* ── CHECKBOX ── */
+.cb-row {
+display: flex;
+align-items: center;
+gap: 8px;
+margin-bottom: 6px;
+cursor: pointer;
+}
+.cb-box {
+width: 14px; height: 14px;
+border: 1px solid var(–border);
+border-radius: 2px;
+background: var(–bg3);
+display: flex; align-items: center; justify-content: center;
+flex-shrink: 0;
+transition: all 0.15s;
+}
+.cb-box.checked { background: var(–amber); border-color: var(–amber); }
+.cb-box.checked::after { content: ‘✓’; font-size: 9px; color: #000; font-weight: 700; }
+.cb-text { font-size: 12px; color: var(–text); }
+</style>
+
+</head>
+<body>
+
+<!-- TOPBAR -->
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-mark"></div>
+    <div>
+      <div class="brand-name">FATGen</div>
+      <div class="brand-sub">Factory Acceptance Test Generator · v0.9</div>
+    </div>
+  </div>
+  <div class="topbar-meta">
+    <div class="meta-item">
+      <span class="meta-label">Platform</span>
+      <span class="meta-value">Siemens S7-1500</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Project</span>
+      <span class="meta-value">BASF-HOU-2024-047</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Tags Loaded</span>
+      <span class="meta-value" style="color:var(--green)">24</span>
+    </div>
+    <div class="status-dot"></div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Project</div>
+      <div class="project-card">
+        <div class="project-name">Ethylene Oxide Unit — FAT</div>
+        <div class="project-field"><span class="pf-key">Client</span><span class="pf-val">BASF Corporation</span></div>
+        <div class="project-field"><span class="pf-key">Site</span><span class="pf-val">Freeport, TX</span></div>
+        <div class="project-field"><span class="pf-key">SI</span><span class="pf-val">ControlPath Inc.</span></div>
+        <div class="project-field"><span class="pf-key">PLC</span><span class="pf-val hi">CPU 1515-2 PN</span></div>
+        <div class="project-field"><span class="pf-key">Rev</span><span class="pf-val">A — DRAFT</span></div>
+      </div>
+    </div>
+
+```
+<div class="sidebar-section">
+  <div class="sidebar-label">Workflow</div>
+  <div class="nav-item active" onclick="setTab('tags')">
+    <div class="nav-icon">◈</div>
+    <div class="nav-text">Tag List</div>
+    <div class="nav-badge">24</div>
+  </div>
+  <div class="nav-item" onclick="setTab('configure')">
+    <div class="nav-icon">⚙</div>
+    <div class="nav-text">Configure Tests</div>
+    <div class="nav-badge">3</div>
+  </div>
+  <div class="nav-item" onclick="setTab('preview')">
+    <div class="nav-icon">☰</div>
+    <div class="nav-text">Document Preview</div>
+    <div class="nav-badge">—</div>
+  </div>
+</div>
+
+<div class="sidebar-section">
+  <div class="sidebar-label">Test Queue</div>
+  <div class="nav-item" onclick="setTab('preview'); setDoc('ai')">
+    <div class="nav-icon" style="color:var(--blue)">▸</div>
+    <div class="nav-text">AI Scaling — FT-101</div>
+  </div>
+  <div class="nav-item" onclick="setTab('preview'); setDoc('alarm')">
+    <div class="nav-icon" style="color:var(--blue)">▸</div>
+    <div class="nav-text">Alarms — FT-101</div>
+  </div>
+  <div class="nav-item" onclick="setTab('preview'); setDoc('motor')">
+    <div class="nav-icon" style="color:var(--blue)">▸</div>
+    <div class="nav-text">Motor Logic — P-201</div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- MAIN -->
+
+  <div class="main">
+
+```
+<!-- STEP BAR -->
+<div class="step-bar">
+  <div class="step-item done" onclick="setTab('tags')">
+    <div class="step-num-badge">✓</div>
+    <div class="step-label">1 · Import Tags</div>
+  </div>
+  <div class="step-sep"></div>
+  <div class="step-item done" onclick="setTab('configure')">
+    <div class="step-num-badge">✓</div>
+    <div class="step-label">2 · Configure Tests</div>
+  </div>
+  <div class="step-sep"></div>
+  <div class="step-item active" onclick="setTab('preview')">
+    <div class="step-num-badge">3</div>
+    <div class="step-label">3 · Generate Documents</div>
+  </div>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <div class="tab active" id="tab-tags" onclick="setTab('tags')">
+    <div class="tab-dot"></div>Tag List &amp; I/O Tree
+  </div>
+  <div class="tab" id="tab-configure" onclick="setTab('configure')">
+    <div class="tab-dot"></div>Test Configuration
+  </div>
+  <div class="tab" id="tab-preview" onclick="setTab('preview')">
+    <div class="tab-dot"></div>Document Preview
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- ══ PANEL: TAGS ══ -->
+  <div class="panel active" id="panel-tags">
+    <div class="section-header">
+      <div class="section-title">I/O Tag List</div>
+      <div class="section-sub">S7-1500 · TIA Portal Export</div>
+      <div class="section-actions">
+        <button class="btn btn-ghost">↑ Re-import CSV</button>
+        <button class="btn btn-primary" onclick="setTab('configure')">Configure Tests →</button>
+      </div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-chip"><span class="info-chip-label">Analog Inputs</span><span class="info-chip-val amber">8</span></div>
+      <div class="info-chip"><span class="info-chip-label">Analog Outputs</span><span class="info-chip-val amber">4</span></div>
+      <div class="info-chip"><span class="info-chip-label">Discrete Inputs</span><span class="info-chip-val amber">8</span></div>
+      <div class="info-chip"><span class="info-chip-label">Discrete Outputs</span><span class="info-chip-val amber">4</span></div>
+      <div class="info-chip"><span class="info-chip-label">Rack / Slot</span><span class="info-chip-val">0 / 3</span></div>
+    </div>
+
+    <div class="scrollable">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Tag Name</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th>Address (S7)</th>
+            <th>Instrument</th>
+            <th>Span Low</th>
+            <th>Span High</th>
+            <th>Eng Units</th>
+            <th>Alarms</th>
+            <th>√ Ext</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="selected">
+            <td class="tag-name">FT-101</td>
+            <td>Reactor Feed Flow</td>
+            <td><span class="badge badge-ai">AI</span></td>
+            <td class="addr">%IW64</td>
+            <td>Rosemount 3051 CD</td>
+            <td>0</td>
+            <td>500</td>
+            <td class="eu">GPM</td>
+            <td style="color:var(--amber)">HH/H/L/LL</td>
+            <td style="color:var(--green)">CTL</td>
+          </tr>
+          <tr>
+            <td class="tag-name">PT-101</td>
+            <td>Reactor Inlet Pressure</td>
+            <td><span class="badge badge-ai">AI</span></td>
+            <td class="addr">%IW66</td>
+            <td>Rosemount 3051 S</td>
+            <td>0</td>
+            <td>150</td>
+            <td class="eu">PSI</td>
+            <td style="color:var(--amber)">HH/H</td>
+            <td class="dtype">—</td>
+          </tr>
+          <tr>
+            <td class="tag-name">TT-201</td>
+            <td>Reactor Outlet Temp</td>
+            <td><span class="badge badge-ai">AI</span></td>
+            <td class="addr">%IW68</td>
+            <td>Rosemount 644 RTD</td>
+            <td>0</td>
+            <td>400</td>
+            <td class="eu">°F</td>
+            <td style="color:var(--amber)">HH/H/L</td>
+            <td class="dtype">—</td>
+          </tr>
+          <tr>
+            <td class="tag-name">AT-301</td>
+            <td>O2 Analyzer</td>
+            <td><span class="badge badge-ai">AI</span></td>
+            <td class="addr">%IW70</td>
+            <td>Yokogawa ZR402G</td>
+            <td>0</td>
+            <td>25</td>
+            <td class="eu">%Vol</td>
+            <td style="color:var(--amber)">HH/H/LL</td>
+            <td class="dtype">—</td>
+          </tr>
+          <tr>
+            <td class="tag-name">LT-401</td>
+            <td>Separator Level</td>
+            <td><span class="badge badge-ai">AI</span></td>
+            <td class="addr">%IW72</td>
+            <td>Rosemount 5300 GWR</td>
+            <td>0</td>
+            <td>100</td>
+            <td class="eu">%</td>
+            <td style="color:var(--amber)">HH/LL</td>
+            <td class="dtype">—</td>
+          </tr>
+          <tr>
+            <td class="tag-name">FCV-101</td>
+            <td>Feed Flow Control Valve</td>
+            <td><span class="badge badge-ao">AO</span></td>
+            <td class="addr">%QW80</td>
+            <td>Fisher 667 w/ DVC6200</td>
+            <td>0</td>
+            <td>100</td>
+            <td class="eu">%Open</td>
+            <td class="dtype">—</td>
+            <td class="dtype">—</td>
+          </tr>
+          <tr>
+            <td class="tag-name">P-201_START</td>
+            <td>Feed Pump Start</td>
+            <td><span class="badge badge-do">DO</span></td>
+            <td class="addr">%Q0.0</td>
+            <td>A-B 100-C Contactor</td>
+            <td>—</td>
+            <td>—</td>
+            <td class="eu">—</td>
+            <td class="dtype">—</td>
+            <td class="dtype">—</td>
+          </tr>
+          <tr>
+            <td class="tag-name">P-201_RUN</td>
+            <td>Feed Pump Run Feedback</td>
+            <td><span class="badge badge-di">DI</span></td>
+            <td class="addr">%I1.0</td>
+            <td>Aux Contact NO</td>
+            <td>—</td>
+            <td>—</td>
+            <td class="eu">—</td>
+            <td class="dtype">—</td>
+            <td class="dtype">—</td>
+          </tr>
+          <tr>
+            <td class="tag-name">P-201_FAULT</td>
+            <td>Feed Pump Fault</td>
+            <td><span class="badge badge-di">DI</span></td>
+            <td class="addr">%I1.1</td>
+            <td>OLR Contact NC</td>
+            <td>—</td>
+            <td>—</td>
+            <td class="eu">—</td>
+            <td class="dtype">—</td>
+            <td class="dtype">—</td>
+          </tr>
+          <tr>
+            <td class="tag-name">XV-501</td>
+            <td>EO Isolation Valve</td>
+            <td><span class="badge badge-do">DO</span></td>
+            <td class="addr">%Q0.2</td>
+            <td>Bettis EHD Actuator</td>
+            <td>—</td>
+            <td>—</td>
+            <td class="eu">—</td>
+            <td class="dtype">—</td>
+            <td class="dtype">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ PANEL: CONFIGURE ══ -->
+  <div class="panel" id="panel-configure">
+    <div class="section-header">
+      <div class="section-title">Test Configuration</div>
+      <div class="section-sub">Select type, assign tag, set parameters</div>
+      <div class="section-actions">
+        <button class="btn btn-primary" onclick="setTab('preview')">Preview Documents →</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px">
+      <div class="sidebar-label" style="margin-bottom:10px">Select Test Type</div>
+      <div class="test-type-grid">
+        <div class="test-type-card selected" onclick="selectTestType(this,'ai')">
+          <div class="tt-icon">📊</div>
+          <div class="tt-name">Analog I/O Scaling</div>
+          <div class="tt-desc">5-point check: 0/25/50/75/100%. mA, VDC, ADC counts, EU. Includes √ extract variant.</div>
+        </div>
+        <div class="test-type-card" onclick="selectTestType(this,'alarm')">
+          <div class="tt-icon">🔔</div>
+          <div class="tt-name">Alarm Verification</div>
+          <div class="tt-desc">HH/H/L/LL setpoints, deadband confirmation, PLC alarm register state.</div>
+        </div>
+        <div class="test-type-card" onclick="selectTestType(this,'motor')">
+          <div class="tt-icon">⚙</div>
+          <div class="tt-name">Motor Starter Logic</div>
+          <div class="tt-desc">Seal-in, run feedback, fault, HOA, interlock trip with auxiliary contact verification.</div>
+        </div>
+        <div class="test-type-card" onclick="selectTestType(this,'ilock')">
+          <div class="tt-icon">🔒</div>
+          <div class="tt-name">Interlock / SIS</div>
+          <div class="tt-desc">Drive input past trip setpoint, verify output state, audit trip log and reset.</div>
+        </div>
+        <div class="test-type-card" onclick="selectTestType(this,'discrete')">
+          <div class="tt-icon">◼</div>
+          <div class="tt-name">Discrete I/O Check</div>
+          <div class="tt-desc">Signal state continuity, PLC bit address verification, field device feedback.</div>
+        </div>
+        <div class="test-type-card" onclick="selectTestType(this,'custom')">
+          <div class="tt-icon">✎</div>
+          <div class="tt-name">Custom Logic Test</div>
+          <div class="tt-desc">User-defined preconditions and assertions. Can reference state of any prior test.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="config-grid">
+      <div class="config-card">
+        <div class="config-card-title">Instrument / Tag</div>
+        <div class="field-row">
+          <div class="field-label">PLC Tag Name</div>
+          <select class="field-control">
+            <option>FT-101 — Reactor Feed Flow</option>
+            <option>PT-101 — Reactor Inlet Pressure</option>
+            <option>TT-201 — Reactor Outlet Temp</option>
+            <option>AT-301 — O2 Analyzer</option>
+            <option>LT-401 — Separator Level</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Instrument Model</div>
+          <input class="field-control" value="Rosemount 3051 CD">
+        </div>
+        <div class="field-row">
+          <div class="field-label">S7 Address</div>
+          <input class="field-control" value="%IW64" style="color:var(--blue)">
+        </div>
+        <div class="field-row">
+          <div class="field-label">Loop Description</div>
+          <input class="field-control" value="Reactor Feed Flow">
+        </div>
+      </div>
+
+      <div class="config-card">
+        <div class="config-card-title">Scaling Parameters</div>
+        <div class="field-row">
+          <div class="field-label">Engineering Units</div>
+          <input class="field-control" value="GPM" style="color:var(--green)">
+        </div>
+        <div class="field-row">
+          <div class="field-label">Span — 0% / 100%</div>
+          <div style="display:flex;gap:8px">
+            <input class="field-control" value="0" style="width:80px">
+            <input class="field-control" value="500">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">Signal Type</div>
+          <select class="field-control">
+            <option>4–20 mA (Standard)</option>
+            <option>1–5 VDC</option>
+            <option>0–10 VDC</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">ADC Resolution</div>
+          <select class="field-control">
+            <option>16-bit (0–27648 counts)</option>
+            <option>12-bit (0–4095 counts)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="config-card">
+        <div class="config-card-title">√ Square Root</div>
+        <div class="field-row">
+          <div class="field-label">Extraction Location</div>
+          <select class="field-control">
+            <option>Controller (PLC) — Raw DP in, √ in tag</option>
+            <option>Transmitter (HART) — √ at instrument</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-label">DP Instrument Range</div>
+          <div style="display:flex;gap:8px">
+            <input class="field-control" value="0" style="width:80px">
+            <input class="field-control" value='250" H₂O'>
+          </div>
+        </div>
+        <div class="cb-row" style="margin-top:4px">
+          <div class="cb-box checked"></div>
+          <div class="cb-text">Include DP raw vs. linearized column</div>
+        </div>
+        <div class="cb-row">
+          <div class="cb-box checked"></div>
+          <div class="cb-text">Record HART primary variable at each point</div>
+        </div>
+      </div>
+
+      <div class="config-card">
+        <div class="config-card-title">Test Options</div>
+        <div class="cb-row">
+          <div class="cb-box checked"></div>
+          <div class="cb-text">Include alarm verification (HH/H/L/LL)</div>
+        </div>
+        <div class="cb-row">
+          <div class="cb-box checked"></div>
+          <div class="cb-text">Record ADC counts at each test point</div>
+        </div>
+        <div class="cb-row">
+          <div class="cb-box checked"></div>
+          <div class="cb-text">Witness signature block</div>
+        </div>
+        <div class="cb-row">
+          <div class="cb-box"></div>
+          <div class="cb-text">Connect to interlock test (Test #3)</div>
+        </div>
+        <div class="cb-row">
+          <div class="cb-box"></div>
+          <div class="cb-text">Dual-point calibration verification</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PANEL: PREVIEW ══ -->
+  <div class="panel" id="panel-preview">
+    <div class="section-header">
+      <div class="section-title">Document Preview</div>
+      <div class="section-sub" id="doc-subtitle-label">Analog Input Scaling — FT-101</div>
+      <div class="section-actions">
+        <button class="btn" onclick="setDoc('ai')">Scaling</button>
+        <button class="btn" onclick="setDoc('alarm')">Alarms</button>
+        <button class="btn" onclick="setDoc('motor')">Motor Logic</button>
+        <button class="btn btn-primary">⤓ Export .docx</button>
+      </div>
+    </div>
+
+    <!-- DOC: AI SCALING -->
+    <div id="doc-ai" class="doc-frame">
+      <div class="doc-header">
+        <div class="doc-logo-block">
+          <div class="co-name">ControlPath Inc.</div>
+          <div class="co-sub">Systems Integration · Process Automation</div>
+        </div>
+        <div class="doc-meta-block">
+          <div class="doc-num">DOC-FAT-2024-047-003</div>
+          <div>Rev: A — DRAFT</div>
+          <div>Date: 2024-11-15</div>
+          <div>Page: 1 of 1</div>
+        </div>
+      </div>
+
+      <div class="doc-title-block">
+        <div class="doc-title">Factory Acceptance Test Procedure</div>
+        <div class="doc-subtitle">Analog Input Scaling Verification — Differential Pressure Flowmeter</div>
+      </div>
+
+      <table class="doc-info-table">
+        <tr><td>Client</td><td>BASF Corporation — Freeport, TX</td><td>Unit</td><td>Ethylene Oxide Reactor Unit</td></tr>
+        <tr><td>Tag Number</td><td><strong>FT-101</strong></td><td>PLC Address</td><td><strong>%IW64</strong></td></tr>
+        <tr><td>Description</td><td>Reactor Feed Flow</td><td>I/O Module Slot</td><td>Rack 0 / Slot 3 / CH 0</td></tr>
+        <tr><td>Instrument</td><td>Rosemount 3051 CD Differential Pressure Transmitter</td><td>Signal</td><td>4–20 mA</td></tr>
+        <tr><td>Eng. Units</td><td><strong>GPM</strong></td><td>Span</td><td><strong>0 – 500 GPM</strong></td></tr>
+        <tr><td>√ Extraction</td><td>Controller (PLC performs square root on raw DP input)</td><td>DP Range</td><td>0 – 250" H₂O</td></tr>
+      </table>
+
+      <div class="doc-note">
+        NOTE: Square root extraction is performed in the controller. Raw ADC counts reflect linear DP signal. EU column reflects post-extraction flow value. Verify HART PV matches expected DP at each test point.
+      </div>
+
+      <div class="doc-section-title">1. FIVE-POINT SCALING CHECK — ANALOG INPUT FT-101</div>
+      <table class="doc-test-table">
+        <thead>
+          <tr>
+            <th>Test Point</th>
+            <th>% of Scale</th>
+            <th>Simulated DP<br>("H₂O)</th>
+            <th>Expected mA</th>
+            <th>Measured mA</th>
+            <th>Expected VDC<br>(250Ω)</th>
+            <th>Measured VDC</th>
+            <th>ADC Counts<br>(Expected)</th>
+            <th>ADC Counts<br>(Observed)</th>
+            <th>Expected EU<br>(GPM)</th>
+            <th>PLC Display<br>(GPM)</th>
+            <th>HART PV<br>("H₂O)</th>
+            <th>Pass / Fail</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="row-label">Point 1 — 0%</td>
+            <td>0%</td><td>0.00</td><td>4.000</td>
+            <td><span class="result-box"></span></td>
+            <td>1.000</td>
+            <td><span class="result-box"></span></td>
+            <td>0</td>
+            <td><span class="result-box"></span></td>
+            <td>0.00</td>
+            <td><span class="result-box"></span></td>
+            <td><span class="result-box"></span></td>
+            <td><span class="result-box"></span></td>
+          </tr>
+          <tr>
+            <td class="row-label">Point 2 — 25%</td>
+            <td>25%</td><td>62.50</td><td>8.000</td>
+            <td><span class="result-box"></span></td>
+            <td>2.000</td>
+            <td><span class="result-box"></span></td>
+            <td>6912</td>
+            <td><span class="result-box"></span></td>
+            <td>125.00</td>
+            <td><span class="result-box"></span></td>
+            <td><span class="result-box"></span></td>
+            <td><span class="result-box"></span></td>
+          </tr>
+          <tr>
+            <td class="row-label">Point 3 — 50%</td>
+            <td>50%</td><td>125.00</td><td>12.000</td>
+            <td><span class="result-box"></span></td>
+            <td>3.000</td>
+            <td><span class="result-box"></span></td>
+            <td>13824</td>
+            <td><span class="result-box"></span></td>
+            <td>250.00</td>
+            <td><span class="result-box"></span></td>
+            <td><span class="result-box"></span></td>
+            <td><span class="result-box"></span></td>
+          </tr>
+          <tr>
+            <td class="row-label">Point 4 — 75%</td>
+            <td>75%</td><td>187.50</td><td>16.000</td>
+            <td><span class="result-box"></span></td>
+            <td>4.000</td>
+            <td><span class="result-box"></span></td>
+            <td>20736</td>
+            <td><span class="result-box"></span></td>
+            <td>375.00</td>
+            <td><span class="result-box"></span></td>
+            <td><span class="result-box"></span></td>
+            <td><span class="result-box"></span></td>
+          </tr>
+          <tr>
+            <td class="row-label">Point 5 — 100%</td>
+            <td>100%</td><td>250.00</td><td>20.000</td>
+            <td><span class="result-box"></span></td>
+            <td>5.000</td>
+            <td><span class="result-box"></span></td>
+            <td>27648</td>
+            <td><span class="result-box"></span></td>
+            <td>500.00</td>
+            <td><span class="result-box"></span></td>
+            <td><span class="result-box"></span></td>
+            <td><span class="result-box"></span></td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="font-size:9px;color:#555;font-family:Arial;margin-bottom:14px">Acceptance criteria: PLC display within ±0.5% of span (±2.5 GPM). ADC counts within ±1 count of expected. mA within ±0.01 mA of expected.</p>
+
+      <div class="doc-section-title">2. ALARM SETPOINT VERIFICATION — FT-101</div>
+      <table class="doc-test-table">
+        <thead>
+          <tr>
+            <th>Alarm Type</th><th>Configured Setpoint (GPM)</th><th>Simulated Value (GPM)</th>
+            <th>PLC Alarm Bit (%M)</th><th>HMI Annunciation</th><th>Deadband (GPM)</th><th>Reset Confirmed</th><th>Pass / Fail</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="row-label">High-High (HH)</td><td>475.0</td><td><span class="result-box"></span></td><td>%M100.3</td><td><span class="result-box"></span></td><td>5.0</td><td><span class="result-box"></span></td><td><span class="result-box"></span></td></tr>
+          <tr><td class="row-label">High (H)</td><td>450.0</td><td><span class="result-box"></span></td><td>%M100.2</td><td><span class="result-box"></span></td><td>5.0</td><td><span class="result-box"></span></td><td><span class="result-box"></span></td></tr>
+          <tr><td class="row-label">Low (L)</td><td>50.0</td><td><span class="result-box"></span></td><td>%M100.1</td><td><span class="result-box"></span></td><td>5.0</td><td><span class="result-box"></span></td><td><span class="result-box"></span></td></tr>
+          <tr><td class="row-label">Low-Low (LL)</td><td>25.0</td><td><span class="result-box"></span></td><td>%M100.0</td><td><span class="result-box"></span></td><td>5.0</td><td><span class="result-box"></span></td><td><span class="result-box"></span></td></tr>
+        </tbody>
+      </table>
+
+      <div class="sig-block">
+        <div>
+          <div class="sig-field"></div><div class="sig-label">Systems Integrator — Test Engineer</div>
+          <div class="sig-field" style="margin-top:10px"></div><div class="sig-label">Date</div>
+        </div>
+        <div>
+          <div class="sig-field"></div><div class="sig-label">Client Representative</div>
+          <div class="sig-field" style="margin-top:10px"></div><div class="sig-label">Date</div>
+        </div>
+        <div>
+          <div class="sig-field"></div><div class="sig-label">Instrument Technician</div>
+          <div class="sig-field" style="margin-top:10px"></div><div class="sig-label">Date</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOC: ALARM ONLY -->
+    <div id="doc-alarm" class="doc-frame" style="display:none">
+      <div class="doc-header">
+        <div class="doc-logo-block"><div class="co-name">ControlPath Inc.</div><div class="co-sub">Systems Integration · Process Automation</div></div>
+        <div class="doc-meta-block"><div class="doc-num">DOC-FAT-2024-047-004</div><div>Rev: A — DRAFT</div><div>Date: 2024-11-15</div></div>
+      </div>
+      <div class="doc-title-block">
+        <div class="doc-title">Factory Acceptance Test Procedure</div>
+        <div class="doc-subtitle">Alarm Setpoint Verification — FT-101 Reactor Feed Flow</div>
+      </div>
+      <table class="doc-info-table">
+        <tr><td>Tag</td><td><strong>FT-101</strong></td><td>Address</td><td>%IW64</td></tr>
+        <tr><td>Description</td><td>Reactor Feed Flow</td><td>EU</td><td>GPM (0–500)</td></tr>
+      </table>
+      <div class="doc-section-title">ALARM VERIFICATION STEPS</div>
+      <table class="doc-step-table">
+        <thead><tr><th style="width:30px">#</th><th>Action / Stimulus</th><th>Expected Response</th><th style="width:80px">Pass / Fail</th></tr></thead>
+        <tbody>
+          <tr><td class="step-num">1</td><td>Simulate FT-101 at 480 GPM (above HH setpoint of 475 GPM)</td><td>%M100.3 = 1. HMI displays HIGH-HIGH alarm for FT-101. Color change to red on display.</td><td><span class="pass-box"></span></td></tr>
+          <tr><td class="step-num">2</td><td>Reduce simulation to 469 GPM (below HH − deadband)</td><td>%M100.3 resets to 0. HMI alarm clears after operator acknowledgment.</td><td><span class="pass-box"></span></td></tr>
+          <tr><td class="step-num">3</td><td>Simulate FT-101 at 455 GPM (above H setpoint of 450 GPM)</td><td>%M100.2 = 1. HMI displays HIGH alarm. HH remains clear.</td><td><span class="pass-box"></span></td></tr>
+          <tr><td class="step-num">4</td><td>Simulate FT-101 at 45 GPM (below LL setpoint of 25 GPM skipped to LL)</td><td>%M100.0 = 1 AND %M100.1 = 1. Both LL and L alarm active simultaneously.</td><td><span class="pass-box"></span></td></tr>
+          <tr><td class="step-num">5</td><td>Return to normal range (100–400 GPM)</td><td>All alarm bits clear. HMI confirms no active alarms on FT-101.</td><td><span class="pass-box"></span></td></tr>
+        </tbody>
+      </table>
+      <div class="sig-block">
+        <div><div class="sig-field"></div><div class="sig-label">Test Engineer</div></div>
+        <div><div class="sig-field"></div><div class="sig-label">Client Representative</div></div>
+        <div><div class="sig-field"></div><div class="sig-label">Date</div></div>
+      </div>
+    </div>
+
+    <!-- DOC: MOTOR LOGIC -->
+    <div id="doc-motor" class="doc-frame" style="display:none">
+      <div class="doc-header">
+        <div class="doc-logo-block"><div class="co-name">ControlPath Inc.</div><div class="co-sub">Systems Integration · Process Automation</div></div>
+        <div class="doc-meta-block"><div class="doc-num">DOC-FAT-2024-047-007</div><div>Rev: A — DRAFT</div><div>Date: 2024-11-15</div></div>
+      </div>
+      <div class="doc-title-block">
+        <div class="doc-title">Factory Acceptance Test Procedure</div>
+        <div class="doc-subtitle">Motor Starter Logic Verification — Feed Pump P-201</div>
+      </div>
+      <table class="doc-info-table">
+        <tr><td>Equipment Tag</td><td><strong>P-201</strong></td><td>Type</td><td>Centrifugal Pump — Motor Starter</td></tr>
+        <tr><td>Start Output</td><td>%Q0.0 (P-201_START)</td><td>Run Feedback</td><td>%I1.0 (P-201_RUN) — Aux Contact NO</td></tr>
+        <tr><td>Fault Input</td><td>%I1.1 (P-201_FAULT) — OLR NC</td><td>Interlock Tag</td><td>LT-401_LL (%M200.0)</td></tr>
+        <tr><td>HOA Mode</td><td>%DB10.DBX0.0 (Hand) / .1 (Off) / .2 (Auto)</td><td>Seal-in Bit</td><td>%M50.0 (P201_LATCH)</td></tr>
+      </table>
+      <div class="doc-section-title">MOTOR STARTER LOGIC TEST SEQUENCE</div>
+      <table class="doc-step-table">
+        <thead><tr><th style="width:30px">#</th><th>Action / Stimulus</th><th>Expected PLC / Field Response</th><th style="width:80px">Pass / Fail</th></tr></thead>
+        <tbody>
+          <tr><td class="step-num">1</td><td>Place HOA in HAND. Verify %DB10.DBX0.0 = 1.</td><td>HMI indicates HAND mode. Auto permissive bypassed.</td><td><span class="pass-box"></span></td></tr>
+          <tr><td class="step-num">2</td><td>Issue START command from HMI. Momentary pushbutton simulation.</td><td>%Q0.0 = 1. Contactor energizes. Verify audible click.</td><td><span class="pass-box"></span></td></tr>
+          <tr><td class="step-num">3</td><td>Close aux contact (simulate %I1.0 = 1) within 5 seconds.</td><td>%M50.0 (latch) = 1. %Q0.0 maintained without pushbutton held.</td><td><span class="pass-box"></span></td></tr>
+          <tr><td class="step-num">4</td><td>Open aux contact (simulate run feedback loss %I1.0 = 0).</td><td>%M50.0 = 0. %Q0.0 = 0. Motor trips. HMI fault annunciation.</td><td><span class="pass-box"></span></td></tr>
+          <tr><td class="step-num">5</td><td>Restart motor. Then simulate OLR trip: force %I1.1 = 0 (NC opens).</td><td>%Q0.0 = 0. %M50.0 = 0. P201_FAULT active. Lockout until reset.</td><td><span class="pass-box"></span></td></tr>
+          <tr><td class="step-num">6</td><td><strong>Interlock Test:</strong> Motor running. Simulate LT-401 below LL setpoint (%M200.0 = 1).</td><td>%Q0.0 forced 0 by interlock logic. Motor trips. XV-501 isolation valve closes (%Q0.2 = 0). Verify aux contacts show open.</td><td><span class="pass-box"></span></td></tr>
+          <tr><td class="step-num">7</td><td>Return LT-401 to normal range. Reset fault. Place in AUTO.</td><td>Interlock clears. AUTO start permissive available. %DB10.DBX0.2 = 1.</td><td><span class="pass-box"></span></td></tr>
+        </tbody>
+      </table>
+      <div class="doc-note">Step 6 references interlock driven by LT-401 low-low condition. This test should be executed with LT-401 signal simulation active (ref. Test DOC-FAT-2024-047-005).</div>
+      <div class="sig-block">
+        <div><div class="sig-field"></div><div class="sig-label">Test Engineer</div></div>
+        <div><div class="sig-field"></div><div class="sig-label">Client Representative</div></div>
+        <div><div class="sig-field"></div><div class="sig-label">Date</div></div>
+      </div>
+    </div>
+
+  </div><!-- /panel-preview -->
+
+</div><!-- /content -->
+
+<!-- GENERATE BAR -->
+<div class="generate-bar">
+  <div class="generate-info">
+    <span>3</span> tests configured · <span>24</span> tags loaded · Platform: <span>Siemens S7-1500</span> · Output: <span>.docx package</span>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="btn">Preview All</button>
+    <button class="btn btn-primary">⤓ Generate Full FAT Package</button>
+  </div>
+</div>
+```
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+  function setTab(id) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    document.getElementById('tab-' + id).classList.add('active');
+  }
+
+  function setDoc(id) {
+    ['ai','alarm','motor'].forEach(d => {
+      document.getElementById('doc-' + d).style.display = 'none';
+    });
+    document.getElementById('doc-' + id).style.display = 'block';
+    const labels = { ai: 'Analog Input Scaling — FT-101', alarm: 'Alarm Verification — FT-101', motor: 'Motor Starter Logic — P-201' };
+    document.getElementById('doc-subtitle-label').textContent = labels[id];
+    setTab('preview');
+  }
+
+  function selectTestType(el, type) {
+    document.querySelectorAll('.test-type-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  // Toggle checkboxes
+  document.querySelectorAll('.cb-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const box = row.querySelector('.cb-box');
+      box.classList.toggle('checked');
+    });
+  });
+
+  // Init
+  setTab('tags');
+</script>
+
+</body>
+</html>
