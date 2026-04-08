@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Generate Documents{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">Generate Documents</div>
+  <div class="section-sub">Export FAT test documents as Word (.docx) files</div>
+</div>
+
+<!-- Summary card -->
+<div class="card">
+  <div class="card-title">Project Summary</div>
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px;">
+    <div>
+      <div style="font-size:10px; font-family:var(--mono); color:var(--text-dim); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:4px;">Project</div>
+      <div style="font-family:var(--mono); color:var(--text-hi);">{{ project.project_number or '—' }}</div>
+      <div style="font-size:11px; color:var(--text-dim);">{{ project.project_name }}</div>
+    </div>
+    <div>
+      <div style="font-size:10px; font-family:var(--mono); color:var(--text-dim); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:4px;">Client</div>
+      <div style="font-family:var(--mono); color:var(--text-hi);">{{ project.client_name or '—' }}</div>
+      <div style="font-size:11px; color:var(--text-dim);">{{ project.client_site }}</div>
+    </div>
+    <div>
+      <div style="font-size:10px; font-family:var(--mono); color:var(--text-dim); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:4px;">Tests / Tags</div>
+      <div style="font-family:var(--mono); color:var(--amber); font-size:20px;">{{ test_cases|length }}</div>
+      <div style="font-size:11px; color:var(--text-dim);">{{ project.tags|length }} tags imported</div>
+    </div>
+  </div>
+</div>
+
+<!-- Generate all -->
+<div class="card">
+  <div class="card-title">Generate Complete FAT Package</div>
+  <p style="color:var(--text-dim); margin-bottom:16px; font-size:12px;">
+    All {{ test_cases|length }} test cases exported as a single Word document with page breaks between tests.
+    Document numbers assigned in test execution order.
+  </p>
+  <form method="post">
+    <input type="hidden" name="action" value="all">
+    <button type="submit" class="btn btn-primary" {% if not test_cases %}disabled{% endif %}>
+      ↓ Download Complete FAT Package (.docx)
+    </button>
+  </form>
+</div>
+
+<!-- Per-test generation -->
+{% if test_cases %}
+<div class="card">
+  <div class="card-title">Generate Individual Tests</div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Document Number</th>
+        <th>Tag</th>
+        <th>Test Type</th>
+        <th style="text-align:right;">Export</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tc in test_cases %}
+      <tr>
+        <td class="mono" style="color:var(--text-dim);">{{ loop.index }}</td>
+        <td class="mono" style="color:var(--amber);">
+          DOC-FAT-{{ project.project_number }}-{{ '%03d' % loop.index }}
+        </td>
+        <td class="mono" style="color:var(--text-hi); font-weight:500;">{{ tc.tag_name }}</td>
+        <td>{{ tc.test_type.value }}</td>
+        <td style="text-align:right;">
+          <form method="post" style="display:inline">
+            <input type="hidden" name="action" value="single">
+            <input type="hidden" name="index" value="{{ loop.index0 }}">
+            <button class="btn btn-secondary btn-sm">↓ .docx</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">📄</div>
+  <div class="empty-title">No Test Cases Configured</div>
+  <div>Go to Test Config to add test cases before generating documents.</div>
+</div>
+{% endif %}
+{% endblock %}

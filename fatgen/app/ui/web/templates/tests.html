@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Test Configuration{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">Test Configuration</div>
+  <div class="section-sub">Define which tests to run and in what order</div>
+</div>
+
+<!-- Add test case -->
+<div class="card">
+  <div class="card-title">Add Test Case</div>
+  <form method="post">
+    <input type="hidden" name="action" value="add">
+    <div class="form-grid">
+      <div class="field">
+        <label>Tag</label>
+        <select name="tag_name">
+          <option value="">— select tag —</option>
+          {% for name, desc, io in tag_options %}
+          <option value="{{ name }}">{{ name }}{% if desc %} — {{ desc[:40] }}{% endif %} ({{ io }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Test Type</label>
+        <select name="test_type">
+          {% for tt in test_types %}
+          <option value="{{ tt.name }}">{{ tt.value }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Witness Blocks</label>
+        <select name="witness_blocks">
+          <option value="1">1 — Engineer only</option>
+          <option value="2" selected>2 — Engineer + Client</option>
+          <option value="3">3 — Engineer + Client + Tech</option>
+        </select>
+      </div>
+      <div class="field" style="align-self:flex-end;">
+        <label>&nbsp;</label>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; padding-top:4px;">
+          <label style="display:flex; align-items:center; gap:6px; font-size:11px; font-family:var(--mono); color:var(--text); text-transform:none; letter-spacing:0; cursor:pointer;">
+            <input type="checkbox" name="include_alarms" value="1" checked> Include Alarms
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; font-size:11px; font-family:var(--mono); color:var(--text); text-transform:none; letter-spacing:0; cursor:pointer;">
+            <input type="checkbox" name="include_adc_counts" value="1" checked> ADC Counts
+          </label>
+        </div>
+      </div>
+      <div class="field form-full">
+        <label>Notes</label>
+        <input type="text" name="notes" placeholder="Optional test notes">
+      </div>
+    </div>
+    <div style="margin-top:14px;">
+      <button type="submit" class="btn btn-primary">Add Test Case</button>
+    </div>
+  </form>
+</div>
+
+<!-- Test case list -->
+{% if test_cases %}
+<div class="card">
+  <div class="card-title">Test Cases <span style="color:var(--text-dim); font-weight:400;">({{ test_cases|length }})</span></div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>ID</th>
+        <th>Tag</th>
+        <th>Test Type</th>
+        <th>Alarms</th>
+        <th>Witnesses</th>
+        <th>Notes</th>
+        <th style="text-align:right;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tc in test_cases %}
+      <tr>
+        <td class="mono" style="color:var(--text-dim);">{{ loop.index }}</td>
+        <td class="mono" style="color:var(--amber);">{{ tc.test_id }}</td>
+        <td class="mono" style="color:var(--text-hi); font-weight:500;">{{ tc.tag_name }}</td>
+        <td style="color:var(--text);">{{ tc.test_type.value }}</td>
+        <td>
+          {% if tc.include_alarms %}
+            <span style="color:var(--green); font-family:var(--mono); font-size:10px;">YES</span>
+          {% else %}
+            <span style="color:var(--text-dim); font-family:var(--mono); font-size:10px;">NO</span>
+          {% endif %}
+        </td>
+        <td class="mono">{{ tc.witness_blocks }}</td>
+        <td style="color:var(--text-dim);">{{ tc.notes or '—' }}</td>
+        <td>
+          <div style="display:flex; gap:4px; justify-content:flex-end;">
+            <form method="post" style="display:inline">
+              <input type="hidden" name="action" value="move_up">
+              <input type="hidden" name="index" value="{{ loop.index0 }}">
+              <button class="btn btn-secondary btn-sm" {% if loop.first %}disabled{% endif %}>↑</button>
+            </form>
+            <form method="post" style="display:inline">
+              <input type="hidden" name="action" value="move_down">
+              <input type="hidden" name="index" value="{{ loop.index0 }}">
+              <button class="btn btn-secondary btn-sm" {% if loop.last %}disabled{% endif %}>↓</button>
+            </form>
+            <form method="post" style="display:inline" onsubmit="return confirm('Remove this test case?')">
+              <input type="hidden" name="action" value="remove">
+              <input type="hidden" name="index" value="{{ loop.index0 }}">
+              <button class="btn btn-danger btn-sm">✕</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<a href="{{ url_for('generate') }}" class="btn btn-primary">Continue to Generate →</a>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">🧪</div>
+  <div class="empty-title">No Test Cases</div>
+  <div>Add test cases above. Import tags first if the list is empty.</div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Import Tags{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">Import Tags</div>
+  <div class="section-sub">Upload TIA Portal CSV tag export — S7-1500 / S7-300</div>
+</div>
+
+<div class="card">
+  <div class="card-title">Upload Tag List</div>
+  <form method="post" enctype="multipart/form-data">
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <div class="field" style="flex:1; min-width:260px;">
+        <label>TIA Portal CSV Export</label>
+        <input type="file" name="csv_file" accept=".csv" style="font-family:var(--mono); font-size:12px;">
+      </div>
+      <button type="submit" class="btn btn-primary" style="align-self:flex-end">Import</button>
+    </div>
+    <div style="margin-top:10px; font-size:11px; color:var(--text-dim); font-family:var(--mono);">
+      Expected columns: Name, Path, Data Type, Logical Address, Comment
+    </div>
+  </form>
+</div>
+
+{% if project.tags %}
+<div class="card">
+  <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+    <span>Tag List <span style="color:var(--text-dim); font-weight:400;">({{ project.tags|length }} tags)</span></span>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Tag Name</th>
+        <th>I/O Type</th>
+        <th>Address</th>
+        <th>Description</th>
+        <th>Span</th>
+        <th>Alarms</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tag in project.tags %}
+      <tr>
+        <td class="mono" style="color:var(--text-hi); font-weight:500;">{{ tag.name }}</td>
+        <td>
+          {% set io = tag.io_type.name %}
+          <span class="badge badge-{{ io.lower() }}">{{ tag.io_type.value }}</span>
+        </td>
+        <td class="mono" style="color:var(--amber);">{{ tag.address }}</td>
+        <td style="color:var(--text-dim);">{{ tag.description or '—' }}</td>
+        <td class="mono">
+          {% if tag.io_type.name in ('AI','AO') %}
+            {{ tag.span_low }}–{{ tag.span_high }} {{ tag.eng_units }}
+          {% else %}—{% endif %}
+        </td>
+        <td>
+          {% if tag.alarms %}
+            {% for a in tag.alarms %}
+              <span class="badge" style="background:#2e1a00; color:var(--amber); border:1px solid #5a3a00; margin-right:2px;">{{ a.level }}</span>
+            {% endfor %}
+          {% else %}—{% endif %}
+        </td>
+        <td>
+          <a href="{{ url_for('edit_tag', tag_name=tag.name) }}" class="btn btn-secondary btn-sm">Edit</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">⬆</div>
+  <div class="empty-title">No Tags Imported</div>
+  <div>Upload a TIA Portal CSV export to populate the tag list.</div>
+</div>
+{% endif %}
+{% endblock %}

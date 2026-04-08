@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Project Setup{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">Project Setup</div>
+  <div class="section-sub">Define project metadata — appears on every generated document</div>
+</div>
+
+<form method="post">
+  <div class="card">
+    <div class="card-title">Project Information</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Project Number</label>
+        <input type="text" name="project_number" value="{{ project.project_number }}" placeholder="BASF-HOU-2024-047">
+      </div>
+      <div class="field">
+        <label>Project Name</label>
+        <input type="text" name="project_name" value="{{ project.project_name }}" placeholder="Ethylene Oxide Unit FAT">
+      </div>
+      <div class="field">
+        <label>Client Name</label>
+        <input type="text" name="client_name" value="{{ project.client_name }}" placeholder="BASF Corporation">
+      </div>
+      <div class="field">
+        <label>Client Site</label>
+        <input type="text" name="client_site" value="{{ project.client_site }}" placeholder="Freeport, TX">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Engineering</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>SI Company</label>
+        <input type="text" name="si_company" value="{{ project.si_company }}" placeholder="ControlPath Inc.">
+      </div>
+      <div class="field">
+        <label>Engineer</label>
+        <input type="text" name="engineer" value="{{ project.engineer }}" placeholder="J. Smith, PE">
+      </div>
+      <div class="field">
+        <label>Revision</label>
+        <input type="text" name="revision" value="{{ project.revision }}" placeholder="A" style="max-width:80px">
+      </div>
+      <div class="field">
+        <label>Revision Date</label>
+        <input type="date" name="revision_date" value="{{ project.revision_date }}">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">PLC Platform</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Platform</label>
+        <select name="platform">
+          {% for p in platforms %}
+          <option value="{{ p.name }}" {% if project.platform == p %}selected{% endif %}>{{ p.value }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>PLC Model</label>
+        <input type="text" name="plc_model" value="{{ project.plc_model }}" placeholder="CPU 1515-2 PN">
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Save &amp; Continue to Import →</button>
+</form>
+{% endblock %}

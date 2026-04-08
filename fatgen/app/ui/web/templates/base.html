@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FATGen — {% block title %}Factory Acceptance Test Generator{% endblock %}</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0d0f12;
+  --bg2:      #13161b;
+  --bg3:      #1a1e26;
+  --border:   #252b36;
+  --amber:    #f5a623;
+  --amber-dim:#9a6610;
+  --green:    #3ecf6e;
+  --red:      #e05252;
+  --blue:     #4a9eff;
+  --text:     #c8d0dc;
+  --text-dim: #606878;
+  --text-hi:  #edf0f5;
+  --mono:     'IBM Plex Mono', monospace;
+  --sans:     'IBM Plex Sans', sans-serif;
+  --cond:     'IBM Plex Sans Condensed', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 48px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.topbar-brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark {
+  width: 28px; height: 28px;
+  background: var(--amber);
+  clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%);
+  display: flex; align-items: center; justify-content: center;
+}
+.brand-name {
+  font-family: var(--cond);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  color: var(--text-hi);
+  text-transform: uppercase;
+}
+.brand-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--amber-dim);
+  letter-spacing: 0.12em;
+}
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+
+/* ── TAB BAR ── */
+.tabbar {
+  display: flex;
+  height: 40px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.tab {
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-decoration: none;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+.tab:hover { color: var(--text); background: var(--bg3); }
+.tab.active { color: var(--amber); border-bottom: 2px solid var(--amber); background: var(--bg); }
+.tab-num {
+  font-size: 9px;
+  color: var(--text-dim);
+  background: var(--bg3);
+  padding: 2px 5px;
+  border-radius: 2px;
+}
+
+/* ── LAYOUT ── */
+.layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+}
+
+/* ── FLASH MESSAGES ── */
+.flashes { margin-bottom: 16px; }
+.flash {
+  padding: 8px 14px;
+  border-radius: 3px;
+  font-size: 12px;
+  margin-bottom: 6px;
+  font-family: var(--mono);
+}
+.flash.success { background: #1a2e1e; border: 1px solid #2a5a30; color: var(--green); }
+.flash.error   { background: #2e1a1a; border: 1px solid #5a2a2a; color: var(--red); }
+.flash.info    { background: #1a2130; border: 1px solid #2a4a6a; color: var(--blue); }
+
+/* ── SECTION HEADER ── */
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.section-title {
+  font-family: var(--cond);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-hi);
+  letter-spacing: 0.04em;
+}
+.section-sub { font-size: 11px; color: var(--text-dim); font-family: var(--mono); }
+
+/* ── FORM ELEMENTS ── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px 24px; }
+.form-full { grid-column: 1 / -1; }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label {
+  font-size: 10px;
+  font-family: var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.field input, .field select, .field textarea {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text-hi);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 7px 10px;
+  border-radius: 3px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--amber);
+}
+.field textarea { resize: vertical; min-height: 60px; }
+select option { background: var(--bg3); }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  transition: opacity 0.15s, background 0.15s;
+}
+.btn:hover { opacity: 0.85; }
+.btn-primary { background: var(--amber); color: #000; font-weight: 600; }
+.btn-secondary { background: var(--bg3); border: 1px solid var(--border); color: var(--text); }
+.btn-danger { background: #3a1818; border: 1px solid #5a2a2a; color: var(--red); }
+.btn-success { background: #1a3020; border: 1px solid #2a5a30; color: var(--green); }
+.btn-sm { padding: 4px 10px; font-size: 10px; }
+
+/* ── TABLE ── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.data-table th {
+  background: var(--bg3);
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.data-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.data-table tr:hover td { background: var(--bg3); }
+.data-table .mono { font-family: var(--mono); font-size: 11px; }
+
+/* ── BADGES ── */
+.badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+.badge-ai  { background: #1a2a40; color: var(--blue); border: 1px solid #2a4a6a; }
+.badge-ao  { background: #2a1a40; color: #9a7aff; border: 1px solid #4a2a8a; }
+.badge-di  { background: #1a3020; color: var(--green); border: 1px solid #2a5a30; }
+.badge-do  { background: #2e2010; color: var(--amber); border: 1px solid #5a4010; }
+.badge-mem { background: #2e1a1a; color: var(--red); border: 1px solid #5a2a2a; }
+
+/* ── CARD ── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.card-title {
+  font-family: var(--cond);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-hi);
+  margin-bottom: 16px;
+}
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-dim);
+}
+.empty-state .empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+  opacity: 0.3;
+}
+.empty-state .empty-title {
+  font-family: var(--cond);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+{% block extra_styles %}{% endblock %}
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-mark"></div>
+    <div>
+      <div class="brand-name">FATGen</div>
+      <div class="brand-sub">FAT Document Generator</div>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <form action="{{ url_for('import_project_file') }}" method="post" enctype="multipart/form-data" style="display:inline">
+      <label class="btn btn-secondary btn-sm" style="cursor:pointer">
+        Load .fatgen
+        <input type="file" name="fatgen_file" accept=".fatgen,.json" style="display:none" onchange="this.form.submit()">
+      </label>
+    </form>
+    <a href="{{ url_for('export_project') }}" class="btn btn-secondary btn-sm">Save .fatgen</a>
+  </div>
+</div>
+
+<div class="tabbar">
+  <a href="{{ url_for('project_setup') }}" class="tab {% if active_tab=='project' %}active{% endif %}">
+    <span class="tab-num">01</span> Project
+  </a>
+  <a href="{{ url_for('import_tags') }}" class="tab {% if active_tab=='import' %}active{% endif %}">
+    <span class="tab-num">02</span> Import Tags
+  </a>
+  <a href="{{ url_for('test_config') }}" class="tab {% if active_tab=='tests' %}active{% endif %}">
+    <span class="tab-num">03</span> Test Config
+  </a>
+  <a href="{{ url_for('generate') }}" class="tab {% if active_tab=='generate' %}active{% endif %}">
+    <span class="tab-num">04</span> Generate
+  </a>
+</div>
+
+<div class="layout">
+  <div class="main">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flashes">
+      {% for cat, msg in messages %}
+      <div class="flash {{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>
