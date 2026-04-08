@@ -28,9 +28,9 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-background: var(–bg);
-color: var(–text);
-font-family: var(–sans);
+background: var(--bg);
+color: var(--text);
+font-family: var(--sans);
 font-size: 13px;
 height: 100vh;
 display: flex;
@@ -45,8 +45,8 @@ align-items: center;
 justify-content: space-between;
 padding: 0 20px;
 height: 48px;
-background: var(–bg2);
-border-bottom: 1px solid var(–border);
+background: var(--bg2);
+border-bottom: 1px solid var(--border);
 flex-shrink: 0;
 }
 .topbar-brand {
@@ -56,22 +56,22 @@ gap: 12px;
 }
 .brand-mark {
 width: 28px; height: 28px;
-background: var(–amber);
+background: var(--amber);
 clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%);
 display: flex; align-items: center; justify-content: center;
 }
 .brand-name {
-font-family: var(–cond);
+font-family: var(--cond);
 font-weight: 700;
 font-size: 15px;
 letter-spacing: 0.08em;
-color: var(–text-hi);
+color: var(--text-hi);
 text-transform: uppercase;
 }
 .brand-sub {
-font-family: var(–mono);
+font-family: var(--mono);
 font-size: 10px;
-color: var(–amber-dim);
+color: var(--amber-dim);
 letter-spacing: 0.12em;
 }
 .topbar-meta {
@@ -84,13 +84,13 @@ display: flex;
 flex-direction: column;
 align-items: flex-end;
 }
-.meta-label { font-size: 9px; color: var(–text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
-.meta-value { font-family: var(–mono); font-size: 11px; color: var(–text-hi); }
+.meta-label { font-size: 9px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+.meta-value { font-family: var(--mono); font-size: 11px; color: var(--text-hi); }
 .status-dot {
 width: 8px; height: 8px;
 border-radius: 50%;
-background: var(–green);
-box-shadow: 0 0 6px var(–green);
+background: var(--green);
+box-shadow: 0 0 6px var(--green);
 animation: pulse 2s infinite;
 }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
@@ -105,8 +105,8 @@ overflow: hidden;
 /* ── SIDEBAR ── */
 .sidebar {
 width: 240px;
-background: var(–bg2);
-border-right: 1px solid var(–border);
+background: var(--bg2);
+border-right: 1px solid var(--border);
 display: flex;
 flex-direction: column;
 overflow-y: auto;
@@ -114,27 +114,27 @@ flex-shrink: 0;
 }
 .sidebar-section {
 padding: 14px 16px 8px;
-border-bottom: 1px solid var(–border);
+border-bottom: 1px solid var(--border);
 }
 .sidebar-label {
-font-family: var(–mono);
+font-family: var(--mono);
 font-size: 9px;
 letter-spacing: 0.14em;
-color: var(–amber-dim);
+color: var(--amber-dim);
 text-transform: uppercase;
 margin-bottom: 10px;
 }
 .project-card {
-background: var(–bg3);
-border: 1px solid var(–border);
+background: var(--bg3);
+border: 1px solid var(--border);
 border-radius: 3px;
 padding: 10px;
 }
 .project-name {
-font-family: var(–cond);
+font-family: var(--cond);
 font-weight: 600;
 font-size: 13px;
-color: var(–text-hi);
+color: var(--text-hi);
 margin-bottom: 6px;
 }
 .project-field {
@@ -142,9 +142,9 @@ display: flex;
 justify-content: space-between;
 margin-bottom: 3px;
 }
-.pf-key { color: var(–text-dim); font-size: 10px; }
-.pf-val { font-family: var(–mono); font-size: 10px; color: var(–text); }
-.pf-val.hi { color: var(–amber); }
+.pf-key { color: var(--text-dim); font-size: 10px; }
+.pf-val { font-family: var(--mono); font-size: 10px; color: var(--text); }
+.pf-val.hi { color: var(--amber); }
 
 .nav-item {
 display: flex;
@@ -156,27 +156,27 @@ cursor: pointer;
 transition: background 0.15s;
 margin-bottom: 2px;
 }
-.nav-item:hover { background: var(–bg3); }
-.nav-item.active { background: rgba(245,166,35,0.12); border-left: 2px solid var(–amber); padding-left: 8px; }
+.nav-item:hover { background: var(--bg3); }
+.nav-item.active { background: rgba(245,166,35,0.12); border-left: 2px solid var(--amber); padding-left: 8px; }
 .nav-icon {
 width: 20px; height: 20px;
 font-size: 12px;
 display: flex; align-items: center; justify-content: center;
-color: var(–text-dim);
+color: var(--text-dim);
 }
-.nav-item.active .nav-icon { color: var(–amber); }
-.nav-text { font-size: 12px; color: var(–text); }
-.nav-item.active .nav-text { color: var(–text-hi); }
+.nav-item.active .nav-icon { color: var(--amber); }
+.nav-text { font-size: 12px; color: var(--text); }
+.nav-item.active .nav-text { color: var(--text-hi); }
 .nav-badge {
 margin-left: auto;
-font-family: var(–mono);
+font-family: var(--mono);
 font-size: 9px;
 padding: 1px 5px;
 border-radius: 2px;
-background: var(–bg3);
-color: var(–text-dim);
+background: var(--bg3);
+color: var(--text-dim);
 }
-.nav-item.active .nav-badge { background: rgba(245,166,35,0.2); color: var(–amber); }
+.nav-item.active .nav-badge { background: rgba(245,166,35,0.2); color: var(--amber); }
 
 /* ── MAIN ── */
 .main {
@@ -192,8 +192,8 @@ display: flex;
 align-items: flex-end;
 gap: 2px;
 padding: 0 20px;
-background: var(–bg2);
-border-bottom: 1px solid var(–border);
+background: var(--bg2);
+border-bottom: 1px solid var(--border);
 height: 40px;
 flex-shrink: 0;
 }
@@ -206,14 +206,14 @@ gap: 7px;
 cursor: pointer;
 border-bottom: 2px solid transparent;
 font-size: 12px;
-color: var(–text-dim);
+color: var(--text-dim);
 transition: color 0.15s;
 white-space: nowrap;
 }
-.tab:hover { color: var(–text); }
+.tab:hover { color: var(--text); }
 .tab.active {
-color: var(–amber);
-border-bottom-color: var(–amber);
+color: var(--amber);
+border-bottom-color: var(--amber);
 }
 .tab-dot { width:6px; height:6px; border-radius:50%; background:currentColor; opacity:0.6; }
 
@@ -236,17 +236,17 @@ gap: 12px;
 margin-bottom: 16px;
 }
 .section-title {
-font-family: var(–cond);
+font-family: var(--cond);
 font-weight: 700;
 font-size: 16px;
-color: var(–text-hi);
+color: var(--text-hi);
 text-transform: uppercase;
 letter-spacing: 0.06em;
 }
 .section-sub {
-font-family: var(–mono);
+font-family: var(--mono);
 font-size: 10px;
-color: var(–text-dim);
+color: var(--text-dim);
 }
 .section-actions {
 margin-left: auto;
@@ -261,18 +261,18 @@ align-items: center;
 gap: 6px;
 padding: 6px 14px;
 border-radius: 3px;
-border: 1px solid var(–border);
-background: var(–bg3);
-color: var(–text);
-font-family: var(–sans);
+border: 1px solid var(--border);
+background: var(--bg3);
+color: var(--text);
+font-family: var(--sans);
 font-size: 12px;
 cursor: pointer;
 transition: all 0.15s;
 }
-.btn:hover { border-color: var(–text-dim); color: var(–text-hi); }
+.btn:hover { border-color: var(--text-dim); color: var(--text-hi); }
 .btn-primary {
-background: var(–amber);
-border-color: var(–amber);
+background: var(--amber);
+border-color: var(--amber);
 color: #000;
 font-weight: 600;
 }
@@ -283,49 +283,49 @@ font-weight: 600;
 .data-table {
 width: 100%;
 border-collapse: collapse;
-font-family: var(–mono);
+font-family: var(--mono);
 font-size: 11px;
 }
 .data-table th {
 text-align: left;
 padding: 7px 10px;
-background: var(–bg3);
-color: var(–text-dim);
+background: var(--bg3);
+color: var(--text-dim);
 font-size: 9px;
 letter-spacing: 0.1em;
 text-transform: uppercase;
-border-bottom: 1px solid var(–border);
-font-family: var(–sans);
+border-bottom: 1px solid var(--border);
+font-family: var(--sans);
 font-weight: 500;
 white-space: nowrap;
 }
 .data-table td {
 padding: 7px 10px;
-border-bottom: 1px solid var(–border);
+border-bottom: 1px solid var(--border);
 vertical-align: middle;
 }
 .data-table tr:hover td { background: rgba(255,255,255,0.02); }
 .data-table tr.selected td { background: rgba(245,166,35,0.06); }
 
-.tag-name { color: var(–amber); font-weight: 500; }
-.addr { color: var(–blue); }
-.eu { color: var(–green); }
-.dtype { color: var(–text-dim); }
+.tag-name { color: var(--amber); font-weight: 500; }
+.addr { color: var(--blue); }
+.eu { color: var(--green); }
+.dtype { color: var(--text-dim); }
 
 .badge {
 display: inline-block;
 padding: 1px 6px;
 border-radius: 2px;
 font-size: 9px;
-font-family: var(–sans);
+font-family: var(--sans);
 font-weight: 600;
 letter-spacing: 0.06em;
 text-transform: uppercase;
 }
-.badge-ai { background: rgba(74,158,255,0.15); color: var(–blue); }
-.badge-ao { background: rgba(62,207,110,0.15); color: var(–green); }
-.badge-di { background: rgba(245,166,35,0.15); color: var(–amber); }
-.badge-do { background: rgba(224,82,82,0.15); color: var(–red); }
+.badge-ai { background: rgba(74,158,255,0.15); color: var(--blue); }
+.badge-ao { background: rgba(62,207,110,0.15); color: var(--green); }
+.badge-di { background: rgba(245,166,35,0.15); color: var(--amber); }
+.badge-do { background: rgba(224,82,82,0.15); color: var(--red); }
 
 /* ── TEST CONFIG ── */
 .config-grid {
@@ -335,18 +335,18 @@ gap: 16px;
 margin-bottom: 16px;
 }
 .config-card {
-background: var(–bg2);
-border: 1px solid var(–border);
+background: var(--bg2);
+border: 1px solid var(--border);
 border-radius: 3px;
 padding: 14px;
 }
 .config-card-title {
-font-family: var(–cond);
+font-family: var(--cond);
 font-weight: 600;
 font-size: 11px;
 letter-spacing: 0.08em;
 text-transform: uppercase;
-color: var(–text-dim);
+color: var(--text-dim);
 margin-bottom: 12px;
 }
 .field-row {
@@ -357,25 +357,25 @@ margin-bottom: 10px;
 }
 .field-label {
 font-size: 10px;
-color: var(–text-dim);
+color: var(--text-dim);
 text-transform: uppercase;
 letter-spacing: 0.08em;
 }
 .field-control {
-background: var(–bg3);
-border: 1px solid var(–border);
+background: var(--bg3);
+border: 1px solid var(--border);
 border-radius: 2px;
 padding: 5px 8px;
-color: var(–text-hi);
-font-family: var(–mono);
+color: var(--text-hi);
+font-family: var(--mono);
 font-size: 12px;
 width: 100%;
 outline: none;
 transition: border-color 0.15s;
 }
-.field-control:focus { border-color: var(–amber); }
+.field-control:focus { border-color: var(--amber); }
 select.field-control { cursor: pointer; }
-option { background: var(–bg3); }
+option { background: var(--bg3); }
 
 /* test type selector */
 .test-type-grid {
@@ -385,19 +385,19 @@ gap: 8px;
 margin-bottom: 16px;
 }
 .test-type-card {
-background: var(–bg2);
-border: 1px solid var(–border);
+background: var(--bg2);
+border: 1px solid var(--border);
 border-radius: 3px;
 padding: 12px;
 cursor: pointer;
 transition: all 0.15s;
 }
-.test-type-card:hover { border-color: var(–text-dim); }
-.test-type-card.selected { border-color: var(–amber); background: rgba(245,166,35,0.06); }
+.test-type-card:hover { border-color: var(--text-dim); }
+.test-type-card.selected { border-color: var(--amber); background: rgba(245,166,35,0.06); }
 .tt-icon { font-size: 20px; margin-bottom: 6px; }
-.tt-name { font-family: var(–cond); font-weight: 600; font-size: 12px; color: var(–text-hi); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
-.tt-desc { font-size: 10px; color: var(–text-dim); line-height: 1.4; }
-.test-type-card.selected .tt-name { color: var(–amber); }
+.tt-name { font-family: var(--cond); font-weight: 600; font-size: 12px; color: var(--text-hi); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
+.tt-desc { font-size: 10px; color: var(--text-dim); line-height: 1.4; }
+.test-type-card.selected .tt-name { color: var(--amber); }
 
 /* ── DOCUMENT PREVIEW ── */
 .doc-frame {
@@ -420,7 +420,7 @@ padding-bottom: 12px;
 margin-bottom: 16px;
 }
 .doc-logo-block .co-name {
-font-family: var(–cond);
+font-family: var(--cond);
 font-size: 18px;
 font-weight: 700;
 letter-spacing: 0.04em;
@@ -536,8 +536,8 @@ display: flex;
 align-items: center;
 gap: 0;
 padding: 10px 20px;
-background: var(–bg2);
-border-bottom: 1px solid var(–border);
+background: var(--bg2);
+border-bottom: 1px solid var(--border);
 flex-shrink: 0;
 }
 .step-item {
@@ -550,24 +550,24 @@ padding: 4px 14px 4px 0;
 .step-num-badge {
 width: 22px; height: 22px;
 border-radius: 50%;
-border: 1px solid var(–border);
+border: 1px solid var(--border);
 display: flex; align-items: center; justify-content: center;
-font-family: var(–mono);
+font-family: var(--mono);
 font-size: 10px;
-color: var(–text-dim);
+color: var(--text-dim);
 flex-shrink: 0;
 }
-.step-item.done .step-num-badge { background: var(–green); border-color: var(–green); color: #000; }
-.step-item.active .step-num-badge { background: var(–amber); border-color: var(–amber); color: #000; font-weight: 600; }
-.step-label { font-size: 11px; color: var(–text-dim); white-space: nowrap; }
-.step-item.active .step-label { color: var(–text-hi); }
-.step-item.done .step-label { color: var(–text); }
-.step-sep { flex: 1; height: 1px; background: var(–border); margin: 0 4px; min-width: 20px; }
+.step-item.done .step-num-badge { background: var(--green); border-color: var(--green); color: #000; }
+.step-item.active .step-num-badge { background: var(--amber); border-color: var(--amber); color: #000; font-weight: 600; }
+.step-label { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+.step-item.active .step-label { color: var(--text-hi); }
+.step-item.done .step-label { color: var(--text); }
+.step-sep { flex: 1; height: 1px; background: var(--border); margin: 0 4px; min-width: 20px; }
 
 /* ── MISC ── */
 .divider {
 height: 1px;
-background: var(–border);
+background: var(--border);
 margin: 16px 0;
 }
 .info-row {
@@ -580,14 +580,14 @@ display: flex;
 align-items: center;
 gap: 6px;
 padding: 6px 10px;
-background: var(–bg3);
-border: 1px solid var(–border);
+background: var(--bg3);
+border: 1px solid var(--border);
 border-radius: 3px;
 font-size: 11px;
 }
-.info-chip-label { color: var(–text-dim); }
-.info-chip-val { font-family: var(–mono); color: var(–text-hi); }
-.info-chip-val.amber { color: var(–amber); }
+.info-chip-label { color: var(--text-dim); }
+.info-chip-val { font-family: var(--mono); color: var(--text-hi); }
+.info-chip-val.amber { color: var(--amber); }
 
 .scrollable { overflow-x: auto; }
 
@@ -596,12 +596,12 @@ display: flex;
 align-items: center;
 justify-content: space-between;
 padding: 12px 20px;
-background: var(–bg2);
-border-top: 1px solid var(–border);
+background: var(--bg2);
+border-top: 1px solid var(--border);
 flex-shrink: 0;
 }
-.generate-info { font-size: 11px; color: var(–text-dim); }
-.generate-info span { color: var(–text-hi); font-family: var(–mono); }
+.generate-info { font-size: 11px; color: var(--text-dim); }
+.generate-info span { color: var(--text-hi); font-family: var(--mono); }
 
 /* ── CHECKBOX ── */
 .cb-row {
@@ -613,16 +613,16 @@ cursor: pointer;
 }
 .cb-box {
 width: 14px; height: 14px;
-border: 1px solid var(–border);
+border: 1px solid var(--border);
 border-radius: 2px;
-background: var(–bg3);
+background: var(--bg3);
 display: flex; align-items: center; justify-content: center;
 flex-shrink: 0;
 transition: all 0.15s;
 }
-.cb-box.checked { background: var(–amber); border-color: var(–amber); }
+.cb-box.checked { background: var(--amber); border-color: var(--amber); }
 .cb-box.checked::after { content: ‘✓’; font-size: 9px; color: #000; font-weight: 700; }
-.cb-text { font-size: 12px; color: var(–text); }
+.cb-text { font-size: 12px; color: var(--text); }
 </style>
 
 </head>
@@ -1000,16 +1000,16 @@ transition: all 0.15s;
         <div class="field-row">
           <div class="field-label">Signal Type</div>
           <select class="field-control">
-            <option>4–20 mA (Standard)</option>
-            <option>1–5 VDC</option>
-            <option>0–10 VDC</option>
+            <option>4--20 mA (Standard)</option>
+            <option>1--5 VDC</option>
+            <option>0--10 VDC</option>
           </select>
         </div>
         <div class="field-row">
           <div class="field-label">ADC Resolution</div>
           <select class="field-control">
-            <option>16-bit (0–27648 counts)</option>
-            <option>12-bit (0–4095 counts)</option>
+            <option>16-bit (0--27648 counts)</option>
+            <option>12-bit (0--4095 counts)</option>
           </select>
         </div>
       </div>
@@ -1103,9 +1103,9 @@ transition: all 0.15s;
         <tr><td>Client</td><td>BASF Corporation — Freeport, TX</td><td>Unit</td><td>Ethylene Oxide Reactor Unit</td></tr>
         <tr><td>Tag Number</td><td><strong>FT-101</strong></td><td>PLC Address</td><td><strong>%IW64</strong></td></tr>
         <tr><td>Description</td><td>Reactor Feed Flow</td><td>I/O Module Slot</td><td>Rack 0 / Slot 3 / CH 0</td></tr>
-        <tr><td>Instrument</td><td>Rosemount 3051 CD Differential Pressure Transmitter</td><td>Signal</td><td>4–20 mA</td></tr>
-        <tr><td>Eng. Units</td><td><strong>GPM</strong></td><td>Span</td><td><strong>0 – 500 GPM</strong></td></tr>
-        <tr><td>√ Extraction</td><td>Controller (PLC performs square root on raw DP input)</td><td>DP Range</td><td>0 – 250" H₂O</td></tr>
+        <tr><td>Instrument</td><td>Rosemount 3051 CD Differential Pressure Transmitter</td><td>Signal</td><td>4--20 mA</td></tr>
+        <tr><td>Eng. Units</td><td><strong>GPM</strong></td><td>Span</td><td><strong>0 -- 500 GPM</strong></td></tr>
+        <tr><td>√ Extraction</td><td>Controller (PLC performs square root on raw DP input)</td><td>DP Range</td><td>0 -- 250" H₂O</td></tr>
       </table>
 
       <div class="doc-note">
@@ -1245,7 +1245,7 @@ transition: all 0.15s;
       </div>
       <table class="doc-info-table">
         <tr><td>Tag</td><td><strong>FT-101</strong></td><td>Address</td><td>%IW64</td></tr>
-        <tr><td>Description</td><td>Reactor Feed Flow</td><td>EU</td><td>GPM (0–500)</td></tr>
+        <tr><td>Description</td><td>Reactor Feed Flow</td><td>EU</td><td>GPM (0--500)</td></tr>
       </table>
       <div class="doc-section-title">ALARM VERIFICATION STEPS</div>
       <table class="doc-step-table">
@@ -1255,7 +1255,7 @@ transition: all 0.15s;
           <tr><td class="step-num">2</td><td>Reduce simulation to 469 GPM (below HH − deadband)</td><td>%M100.3 resets to 0. HMI alarm clears after operator acknowledgment.</td><td><span class="pass-box"></span></td></tr>
           <tr><td class="step-num">3</td><td>Simulate FT-101 at 455 GPM (above H setpoint of 450 GPM)</td><td>%M100.2 = 1. HMI displays HIGH alarm. HH remains clear.</td><td><span class="pass-box"></span></td></tr>
           <tr><td class="step-num">4</td><td>Simulate FT-101 at 45 GPM (below LL setpoint of 25 GPM skipped to LL)</td><td>%M100.0 = 1 AND %M100.1 = 1. Both LL and L alarm active simultaneously.</td><td><span class="pass-box"></span></td></tr>
-          <tr><td class="step-num">5</td><td>Return to normal range (100–400 GPM)</td><td>All alarm bits clear. HMI confirms no active alarms on FT-101.</td><td><span class="pass-box"></span></td></tr>
+          <tr><td class="step-num">5</td><td>Return to normal range (100--400 GPM)</td><td>All alarm bits clear. HMI confirms no active alarms on FT-101.</td><td><span class="pass-box"></span></td></tr>
         </tbody>
       </table>
       <div class="sig-block">
