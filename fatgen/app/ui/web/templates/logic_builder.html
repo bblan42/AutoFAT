@@ -1,0 +1,511 @@
+{% extends "base.html" %}
+{% block title %}Logic Builder — {{ network.name }}{% endblock %}
+
+{% block extra_styles %}
+<style>
+.logic-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  align-items: start;
+}
+.rung-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.rung-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+}
+.rung-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--amber);
+  letter-spacing: 0.08em;
+  min-width: 52px;
+}
+.rung-desc {
+  font-size: 12px;
+  color: var(--text-dim);
+  flex: 1;
+}
+.rung-canvas { padding: 16px; overflow-x: auto; }
+.rung-canvas svg { display: block; }
+
+.add-element-form {
+  display: flex;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.add-element-form select,
+.add-element-form input {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text-hi);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 5px 8px;
+  border-radius: 3px;
+  outline: none;
+}
+.add-element-form input { width: 110px; }
+.add-element-form input::placeholder { color: var(--text-dim); }
+
+/* Minimap */
+.minimap-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px;
+  position: sticky;
+  top: 20px;
+}
+.minimap-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+.minimap-rungs { display: flex; flex-direction: column; gap: 4px; }
+.minimap-rung {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  transition: background 0.1s;
+}
+.minimap-rung.active {
+  background: #2e1e00;
+  border-color: var(--amber-dim);
+}
+.minimap-rung-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  min-width: 28px;
+}
+.minimap-rung.active .minimap-rung-num { color: var(--amber); }
+.minimap-rung-bar { flex: 1; height: 6px; background: var(--border); border-radius: 1px; }
+.minimap-rung.active .minimap-rung-bar { background: var(--amber-dim); }
+.minimap-rung-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.minimap-rung.active .minimap-rung-label { color: var(--amber); }
+.here-badge {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: #000;
+  background: var(--amber);
+  padding: 1px 5px;
+  border-radius: 2px;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">{{ network.name }}</div>
+  <div class="section-sub">
+    {{ network.total_rungs }} rung{% if network.total_rungs != 1 %}s{% endif %}
+    {% if network.test_rung_numbers %}
+    — testing rung{% if network.test_rung_numbers|length > 1 %}s{% endif %}
+    <span style="color:var(--amber); font-family:var(--mono);">{{ network.test_rung_numbers | join(', ') }}</span>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Network meta form -->
+<form method="post" style="margin-bottom:16px;">
+  <input type="hidden" name="action" value="save_meta">
+  <div class="card">
+    <div class="card-title">Network Settings</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Network Name</label>
+        <input type="text" name="name" value="{{ network.name }}">
+      </div>
+      <div class="field">
+        <label>Test Rung Numbers <span style="font-weight:400; color:var(--text-dim);">(comma-separated — drives minimap)</span></label>
+        <input type="text" name="test_rung_numbers"
+               value="{{ network.test_rung_numbers | join(', ') }}"
+               placeholder="e.g. 3, 4">
+      </div>
+      <div class="field form-full">
+        <label>Description</label>
+        <input type="text" name="description" value="{{ network.description }}">
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <button type="submit" class="btn btn-secondary btn-sm">Save Settings</button>
+    </div>
+  </div>
+</form>
+
+<div class="logic-layout">
+  <!-- Left: rungs -->
+  <div>
+
+    {% if network.rungs %}
+    {% for rung in network.rungs %}
+    <div class="rung-card" id="rung-{{ loop.index0 }}">
+      <div class="rung-header">
+        <span class="rung-num">RUNG {{ rung.rung_number }}</span>
+        <span class="rung-desc">{{ rung.description or '(no description)' }}</span>
+        {% if rung.rung_number in network.test_rung_numbers %}
+        <span class="here-badge">▼ TESTING</span>
+        {% endif %}
+        <form method="post" style="display:inline" onsubmit="return confirm('Delete rung {{ rung.rung_number }}?')">
+          <input type="hidden" name="action" value="delete_rung">
+          <input type="hidden" name="rung_index" value="{{ loop.index0 }}">
+          <button class="btn btn-danger btn-sm">✕ rung</button>
+        </form>
+      </div>
+
+      <!-- SVG canvas — drawn by JS -->
+      <div class="rung-canvas">
+        <svg id="svg-rung-{{ loop.index0 }}"
+             data-elements="{{ rung.elements | tojson | e }}"
+             width="660" height="90">
+          <text x="330" y="50" text-anchor="middle"
+                font-family="'IBM Plex Mono', monospace" font-size="11"
+                fill="#606878">— empty rung —</text>
+        </svg>
+      </div>
+
+      <!-- Element list (text fallback + delete) -->
+      {% if rung.elements %}
+      <div style="padding:0 14px 10px; display:flex; flex-wrap:wrap; gap:6px;">
+        {% for el in rung.elements %}
+        <div style="display:flex; align-items:center; gap:4px; background:var(--bg3);
+                    border:1px solid var(--border); border-radius:3px; padding:3px 8px;">
+          <span style="font-family:var(--mono); font-size:10px; color:var(--amber);">{{ el.element_type }}</span>
+          {% if el.tag %}<span style="font-family:var(--mono); font-size:10px; color:var(--text-hi);">{{ el.tag }}</span>{% endif %}
+          {% if el.label %}<span style="font-size:10px; color:var(--text-dim);">{{ el.label }}</span>{% endif %}
+          <form method="post" style="display:inline">
+            <input type="hidden" name="action" value="delete_element">
+            <input type="hidden" name="rung_index" value="{{ loop.index0 }}">
+            <input type="hidden" name="el_index" value="{{ loop.index0 }}">
+            <button class="btn btn-danger btn-sm" style="padding:1px 5px; font-size:9px;">✕</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Add element form -->
+      <form method="post" class="add-element-form">
+        <input type="hidden" name="action" value="add_element">
+        <input type="hidden" name="rung_index" value="{{ loop.index0 }}">
+
+        <select name="element_type" onchange="updateParamHint(this)">
+          {% for et in element_types %}
+          {% if et.name not in ('BRANCH_OPEN','BRANCH_CLOSE') %}
+          <option value="{{ et.name }}">{{ et.name }} — {{ et.value }}</option>
+          {% endif %}
+          {% endfor %}
+        </select>
+
+        <input type="text" name="el_tag" placeholder="Tag name"
+               list="tag-list-{{ loop.index0 }}">
+        <datalist id="tag-list-{{ loop.index0 }}">
+          {% for tag in project_tags %}
+          <option value="{{ tag.name }}">{{ tag.name }} — {{ tag.address }}</option>
+          {% endfor %}
+        </datalist>
+
+        <input type="text" name="el_address" placeholder="Address">
+        <input type="text" name="el_label"   placeholder="Label">
+        <input type="text" name="el_parameter" placeholder="Preset / value">
+        <input type="text" name="el_comment"   placeholder="Comment">
+
+        <button type="submit" class="btn btn-primary btn-sm">+ Add</button>
+      </form>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state" style="padding:40px 20px;">
+      <div class="empty-title">No Rungs</div>
+      <div>Add your first rung below.</div>
+    </div>
+    {% endif %}
+
+    <!-- Add rung -->
+    <form method="post">
+      <input type="hidden" name="action" value="add_rung">
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="text" name="rung_description" placeholder="Rung description (optional)"
+               style="background:var(--bg3); border:1px solid var(--border); color:var(--text-hi);
+                      font-family:var(--mono); font-size:12px; padding:7px 10px;
+                      border-radius:3px; outline:none; flex:1;">
+        <button type="submit" class="btn btn-success">+ Add Rung</button>
+      </div>
+    </form>
+
+  </div>
+
+  <!-- Right: minimap -->
+  <div class="minimap-card">
+    <div class="minimap-title">Logic Chain — You Are Here</div>
+
+    {% if network.rungs %}
+    <div class="minimap-rungs" id="minimap">
+      {% for rung in network.rungs %}
+      {% set is_active = rung.rung_number in network.test_rung_numbers %}
+      <div class="minimap-rung {% if is_active %}active{% endif %}"
+           onclick="document.getElementById('rung-{{ loop.index0 }}').scrollIntoView({behavior:'smooth'});"
+           style="cursor:pointer;">
+        <span class="minimap-rung-num">{{ '%02d' % rung.rung_number }}</span>
+        <div class="minimap-rung-bar"></div>
+        <span class="minimap-rung-label">{{ rung.description or '…' }}</span>
+        {% if is_active %}<span class="here-badge">HERE</span>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">
+      <div style="font-family:var(--mono); font-size:10px; color:var(--text-dim); margin-bottom:6px;">
+        COVERAGE
+      </div>
+      <div style="display:flex; gap:4px; flex-wrap:wrap;">
+        {% for rung in network.rungs %}
+        <div style="width:16px; height:16px; border-radius:2px; font-size:8px;
+                    display:flex; align-items:center; justify-content:center;
+                    font-family:var(--mono);
+                    {% if rung.rung_number in network.test_rung_numbers %}
+                    background:var(--amber); color:#000;
+                    {% else %}
+                    background:var(--bg3); color:var(--text-dim); border:1px solid var(--border);
+                    {% endif %}">
+          {{ rung.rung_number }}
+        </div>
+        {% endfor %}
+      </div>
+      <div style="margin-top:8px; font-size:10px; color:var(--text-dim); font-family:var(--mono);">
+        {{ network.test_rung_numbers | length }} / {{ network.total_rungs }} rungs under test
+      </div>
+    </div>
+
+    {% else %}
+    <div style="color:var(--text-dim); font-size:11px; font-family:var(--mono);">
+      Add rungs to see the minimap.
+    </div>
+    {% endif %}
+
+    <div style="margin-top:16px; padding-top:12px; border-top:1px solid var(--border);">
+      <div style="font-size:10px; color:var(--text-dim); font-family:var(--mono); margin-bottom:6px;">
+        SET TEST RUNGS
+      </div>
+      <form method="post" style="display:flex; gap:6px; align-items:center;">
+        <input type="hidden" name="action" value="save_meta">
+        <input type="hidden" name="name" value="{{ network.name }}">
+        <input type="hidden" name="description" value="{{ network.description }}">
+        <input type="text" name="test_rung_numbers"
+               value="{{ network.test_rung_numbers | join(', ') }}"
+               placeholder="e.g. 3, 4"
+               style="background:var(--bg3); border:1px solid var(--border); color:var(--text-hi);
+                      font-family:var(--mono); font-size:11px; padding:5px 8px;
+                      border-radius:3px; outline:none; flex:1; min-width:0;">
+        <button type="submit" class="btn btn-primary btn-sm">Set</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:16px; display:flex; gap:10px;">
+  <a href="{{ url_for('logic_list') }}" class="btn btn-secondary">← All Networks</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── SVG Ladder Renderer ───────────────────────────────────────────────────────
+
+const RAIL_H    = 45;   // vertical centre of the rung
+const EL_W      = 80;   // width per element
+const RAIL_L    = 30;   // left rail x
+const WIRE_COL  = '#4a9eff';
+const RAIL_COL  = '#252b36';
+const TEXT_DIM  = '#606878';
+const TEXT_HI   = '#edf0f5';
+const AMBER     = '#f5a623';
+const GREEN     = '#3ecf6e';
+
+function svgEl(tag, attrs, inner) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const el = document.createElementNS(ns, tag);
+  for (const [k, v] of Object.entries(attrs || {})) el.setAttribute(k, v);
+  if (inner) el.innerHTML = inner;
+  return el;
+}
+
+function renderRung(svg, elements) {
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  if (!elements || elements.length === 0) {
+    svg.appendChild(svgEl('text', {
+      x: 330, y: RAIL_H + 5, 'text-anchor': 'middle',
+      'font-family': "'IBM Plex Mono', monospace", 'font-size': 11, fill: TEXT_DIM
+    }, '— empty rung —'));
+    return;
+  }
+
+  // Group by branch_id
+  const mainEls   = elements.filter(e => e.branch_id === 0);
+  const branches  = {};
+  elements.filter(e => e.branch_id > 0).forEach(e => {
+    (branches[e.branch_id] = branches[e.branch_id] || []).push(e);
+  });
+
+  const totalW = RAIL_L + mainEls.length * EL_W + 60;
+  const hasBranch = Object.keys(branches).length > 0;
+  const svgH = hasBranch ? 120 : 90;
+  svg.setAttribute('width', Math.max(totalW, 400));
+  svg.setAttribute('height', svgH);
+
+  // Left power rail
+  svg.appendChild(svgEl('line', {
+    x1: RAIL_L, y1: 10, x2: RAIL_L, y2: svgH - 10,
+    stroke: RAIL_COL, 'stroke-width': 4
+  }));
+
+  // Draw main rung wire
+  let x = RAIL_L;
+  svg.appendChild(svgEl('line', { x1: x, y1: RAIL_H, x2: x + 10, y2: RAIL_H, stroke: WIRE_COL, 'stroke-width': 2 }));
+  x += 10;
+
+  mainEls.forEach((el, i) => {
+    drawElement(svg, el, x, RAIL_H);
+    x += EL_W;
+  });
+
+  // Right power rail
+  svg.appendChild(svgEl('line', {
+    x1: x, y1: 10, x2: x, y2: svgH - 10,
+    stroke: RAIL_COL, 'stroke-width': 4
+  }));
+
+  // Draw branches below main rung
+  let branchY = RAIL_H + 36;
+  for (const [bid, bEls] of Object.entries(branches)) {
+    let bx = RAIL_L + 10;
+    svg.appendChild(svgEl('line', { x1: RAIL_L, y1: branchY, x2: bx, y2: branchY, stroke: WIRE_COL, 'stroke-width': 2 }));
+    bEls.forEach(el => {
+      drawElement(svg, el, bx, branchY);
+      bx += EL_W;
+    });
+    svg.appendChild(svgEl('line', { x1: bx, y1: branchY, x2: x, y2: branchY, stroke: WIRE_COL, 'stroke-width': 2 }));
+    // Connectors to main rung
+    svg.appendChild(svgEl('line', { x1: RAIL_L, y1: RAIL_H, x2: RAIL_L, y2: branchY, stroke: WIRE_COL, 'stroke-width': 2, 'stroke-dasharray': '4 2' }));
+    svg.appendChild(svgEl('line', { x1: x, y1: RAIL_H, x2: x, y2: branchY, stroke: WIRE_COL, 'stroke-width': 2, 'stroke-dasharray': '4 2' }));
+    branchY += 36;
+  }
+}
+
+function drawElement(svg, el, x, cy) {
+  const t = el.element_type;
+  const tag  = el.tag || el.label || t;
+  const addr = el.address ? el.address : '';
+
+  // Tag label above
+  svg.appendChild(svgEl('text', {
+    x: x + EL_W/2, y: cy - 18,
+    'text-anchor': 'middle',
+    'font-family': "'IBM Plex Mono', monospace",
+    'font-size': 9, fill: AMBER
+  }, tag));
+
+  // Address label below
+  if (addr) {
+    svg.appendChild(svgEl('text', {
+      x: x + EL_W/2, y: cy + 22,
+      'text-anchor': 'middle',
+      'font-family': "'IBM Plex Mono', monospace",
+      'font-size': 8, fill: TEXT_DIM
+    }, addr));
+  }
+
+  const cx = x + EL_W / 2;
+
+  if (t === 'NO_CONTACT') {
+    // --| |--
+    svg.appendChild(svgEl('line', { x1: x, y1: cy, x2: cx - 10, y2: cy, stroke: WIRE_COL, 'stroke-width': 2 }));
+    svg.appendChild(svgEl('line', { x1: cx - 10, y1: cy - 10, x2: cx - 10, y2: cy + 10, stroke: TEXT_HI, 'stroke-width': 2 }));
+    svg.appendChild(svgEl('line', { x1: cx + 10, y1: cy - 10, x2: cx + 10, y2: cy + 10, stroke: TEXT_HI, 'stroke-width': 2 }));
+    svg.appendChild(svgEl('line', { x1: cx + 10, y1: cy, x2: x + EL_W, y2: cy, stroke: WIRE_COL, 'stroke-width': 2 }));
+
+  } else if (t === 'NC_CONTACT') {
+    // --|/|--
+    svg.appendChild(svgEl('line', { x1: x, y1: cy, x2: cx - 10, y2: cy, stroke: WIRE_COL, 'stroke-width': 2 }));
+    svg.appendChild(svgEl('line', { x1: cx - 10, y1: cy - 10, x2: cx - 10, y2: cy + 10, stroke: TEXT_HI, 'stroke-width': 2 }));
+    svg.appendChild(svgEl('line', { x1: cx + 10, y1: cy - 10, x2: cx + 10, y2: cy + 10, stroke: TEXT_HI, 'stroke-width': 2 }));
+    svg.appendChild(svgEl('line', { x1: cx - 10, y1: cy + 10, x2: cx + 10, y2: cy - 10, stroke: TEXT_HI, 'stroke-width': 2 })); // slash
+    svg.appendChild(svgEl('line', { x1: cx + 10, y1: cy, x2: x + EL_W, y2: cy, stroke: WIRE_COL, 'stroke-width': 2 }));
+
+  } else if (t === 'COIL') {
+    // --( )--
+    svg.appendChild(svgEl('line', { x1: x, y1: cy, x2: cx - 12, y2: cy, stroke: WIRE_COL, 'stroke-width': 2 }));
+    svg.appendChild(svgEl('circle', { cx: cx, cy: cy, r: 12, fill: 'none', stroke: GREEN, 'stroke-width': 2 }));
+    svg.appendChild(svgEl('line', { x1: cx + 12, y1: cy, x2: x + EL_W, y2: cy, stroke: WIRE_COL, 'stroke-width': 2 }));
+
+  } else if (t === 'SET_COIL') {
+    svg.appendChild(svgEl('line', { x1: x, y1: cy, x2: cx - 12, y2: cy, stroke: WIRE_COL, 'stroke-width': 2 }));
+    svg.appendChild(svgEl('circle', { cx: cx, cy: cy, r: 12, fill: 'none', stroke: GREEN, 'stroke-width': 2 }));
+    svg.appendChild(svgEl('text', { x: cx, y: cy + 4, 'text-anchor': 'middle', 'font-size': 9, fill: GREEN, 'font-weight': 'bold' }, 'S'));
+    svg.appendChild(svgEl('line', { x1: cx + 12, y1: cy, x2: x + EL_W, y2: cy, stroke: WIRE_COL, 'stroke-width': 2 }));
+
+  } else if (t === 'RESET_COIL') {
+    svg.appendChild(svgEl('line', { x1: x, y1: cy, x2: cx - 12, y2: cy, stroke: WIRE_COL, 'stroke-width': 2 }));
+    svg.appendChild(svgEl('circle', { cx: cx, cy: cy, r: 12, fill: 'none', stroke: '#e05252', 'stroke-width': 2 }));
+    svg.appendChild(svgEl('text', { x: cx, y: cy + 4, 'text-anchor': 'middle', 'font-size': 9, fill: '#e05252', 'font-weight': 'bold' }, 'R'));
+    svg.appendChild(svgEl('line', { x1: cx + 12, y1: cy, x2: x + EL_W, y2: cy, stroke: WIRE_COL, 'stroke-width': 2 }));
+
+  } else {
+    // Generic block (TON, TOF, CTU, FB, CMP, etc.)
+    const label = el.parameter ? `${t}\n${el.parameter}` : t;
+    svg.appendChild(svgEl('line', { x1: x, y1: cy, x2: cx - 20, y2: cy, stroke: WIRE_COL, 'stroke-width': 2 }));
+    svg.appendChild(svgEl('rect', { x: cx - 20, y: cy - 14, width: 40, height: 28, fill: '#1a2130', stroke: '#4a9eff', 'stroke-width': 1.5, rx: 2 }));
+    svg.appendChild(svgEl('text', { x: cx, y: cy + 4, 'text-anchor': 'middle', 'font-family': "'IBM Plex Mono', monospace", 'font-size': 9, fill: WIRE_COL }, t));
+    if (el.parameter) {
+      svg.appendChild(svgEl('text', { x: cx, y: cy + 14, 'text-anchor': 'middle', 'font-family': "'IBM Plex Mono', monospace", 'font-size': 7, fill: TEXT_DIM }, el.parameter));
+    }
+    svg.appendChild(svgEl('line', { x1: cx + 20, y1: cy, x2: x + EL_W, y2: cy, stroke: WIRE_COL, 'stroke-width': 2 }));
+  }
+}
+
+// Render all rungs on load
+document.querySelectorAll('svg[data-elements]').forEach(svg => {
+  try {
+    const elements = JSON.parse(svg.dataset.elements);
+    renderRung(svg, elements);
+  } catch(e) { console.error('SVG render error', e); }
+});
+
+function updateParamHint(sel) {
+  // Could show/hide parameter input based on element type — future enhancement
+}
+</script>
+{% endblock %}

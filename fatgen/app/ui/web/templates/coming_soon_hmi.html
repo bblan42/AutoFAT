@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}HMI Testing — Coming Soon{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">HMI Testing</div>
+  <div class="section-sub">Feature in design — input needed before build</div>
+</div>
+
+<div class="card" style="border-color: var(--amber-dim);">
+  <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+    <div style="width:10px; height:10px; border-radius:50%; background:var(--amber); flex-shrink:0;"></div>
+    <div class="card-title" style="margin:0; color:var(--amber);">Planned Feature — Not Yet Built</div>
+  </div>
+  <p style="color:var(--text-dim); line-height:1.7; margin-bottom:12px;">
+    HMI testing is a distinct verification layer from I/O and comms testing. The current FAT documents
+    include an <em>HMI Expected</em> column in each test table, but there is no formal structure for
+    testing HMI displays, faceplates, alarm pages, trend historians, or navigation paths as standalone test cases.
+  </p>
+  <p style="color:var(--text-dim); line-height:1.7;">
+    This section will cover structured checklist-based verification of the operator interface — independent
+    from the underlying signal verification. A technician can confirm the field signal while the client
+    representative simultaneously verifies the HMI display, with both signing the same document.
+  </p>
+</div>
+
+<div class="card">
+  <div class="card-title">Proposed Test Structure</div>
+  <p style="color:var(--text-dim); margin-bottom:16px; font-size:12px;">
+    Each HMI test case would produce a checklist document with the following format:
+  </p>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Screen / Faceplate</th>
+        <th>Navigation Path</th>
+        <th>Element</th>
+        <th>Expected Display</th>
+        <th>Actual</th>
+        <th>P / F</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono" style="color:var(--text-hi);">FT-101 Faceplate</td>
+        <td style="color:var(--text-dim); font-size:11px;">Overview → Reactor → FT-101</td>
+        <td>EU Readout</td>
+        <td class="mono">0 – 500 GPM</td>
+        <td style="background:var(--bg3); min-width:80px;"></td>
+        <td style="background:var(--bg3); min-width:40px;"></td>
+      </tr>
+      <tr>
+        <td class="mono" style="color:var(--text-hi);">FT-101 Faceplate</td>
+        <td style="color:var(--text-dim); font-size:11px;"></td>
+        <td>HH Alarm Badge</td>
+        <td class="mono">Red, latches on activation</td>
+        <td style="background:var(--bg3);"></td>
+        <td style="background:var(--bg3);"></td>
+      </tr>
+      <tr>
+        <td class="mono" style="color:var(--text-hi);">Reactor Overview</td>
+        <td style="color:var(--text-dim); font-size:11px;">Main → Reactor Unit</td>
+        <td>Tag label position</td>
+        <td class="mono">Upper-left of heat exchanger graphic</td>
+        <td style="background:var(--bg3);"></td>
+        <td style="background:var(--bg3);"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-title" style="color:var(--amber);">Open Questions — Needed Before Build</div>
+  <div style="display:flex; flex-direction:column; gap:16px;">
+
+    <div style="padding:14px; background:var(--bg3); border-radius:3px; border-left:3px solid var(--amber);">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--amber); margin-bottom:6px;">Q1 — Bundled or Standalone?</div>
+      <div style="color:var(--text); line-height:1.6;">
+        Should HMI checks be a <strong>standalone test type</strong> (separate document, separate sign-off),
+        or an <strong>optional section bundled</strong> into each AI/DI/Motor test — so the field tech and
+        client rep verify signal and display on one page?
+      </div>
+    </div>
+
+    <div style="padding:14px; background:var(--bg3); border-radius:3px; border-left:3px solid var(--amber);">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--amber); margin-bottom:6px;">Q2 — HMI Platform</div>
+      <div style="color:var(--text); line-height:1.6;">
+        Which HMI platforms need to be covered?
+        <span style="font-family:var(--mono); color:var(--text-dim);">
+          WinCC, FactoryTalk View, Ignition, iFIX, Wonderware/AVEVA, other?
+        </span>
+        Does the platform affect the test structure, or is it just metadata on the document header?
+      </div>
+    </div>
+
+    <div style="padding:14px; background:var(--bg3); border-radius:3px; border-left:3px solid var(--amber);">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--amber); margin-bottom:6px;">Q3 — Screenshot Attachment</div>
+      <div style="color:var(--text); line-height:1.6;">
+        Should the generated document include placeholder boxes for screenshot attachments
+        (paste in a screen capture after the FAT), or is a hand-written description in the <em>Actual</em>
+        column sufficient for your clients?
+      </div>
+    </div>
+
+    <div style="padding:14px; background:var(--bg3); border-radius:3px; border-left:3px solid var(--amber);">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--amber); margin-bottom:6px;">Q4 — Alarm Page Testing</div>
+      <div style="color:var(--text); line-height:1.6;">
+        Do you need a specific sub-type for verifying the alarm summary page
+        (alarm appears, priority is correct, message text matches datasheet)?
+        Or is that covered by the alarm verification test + the HMI faceplate check?
+      </div>
+    </div>
+
+    <div style="padding:14px; background:var(--bg3); border-radius:3px; border-left:3px solid var(--amber);">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--amber); margin-bottom:6px;">Q5 — Navigation / Workflow Tests</div>
+      <div style="color:var(--text); line-height:1.6;">
+        Do you need a test type for overall navigation (can the operator reach every screen within N clicks?
+        are emergency shutdown buttons accessible from all screens?) separate from per-tag display tests?
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

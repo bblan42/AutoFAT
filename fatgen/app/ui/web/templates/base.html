@@ -315,8 +315,21 @@ select option { background: var(--bg3); }
   <a href="{{ url_for('test_config') }}" class="tab {% if active_tab=='tests' %}active{% endif %}">
     <span class="tab-num">03</span> Test Config
   </a>
+  <a href="{{ url_for('logic_list') }}" class="tab {% if active_tab=='logic' %}active{% endif %}">
+    <span class="tab-num">03b</span> Logic
+  </a>
   <a href="{{ url_for('generate') }}" class="tab {% if active_tab=='generate' %}active{% endif %}">
     <span class="tab-num">04</span> Generate
+  </a>
+  <a href="{{ url_for('hmi_testing') }}" class="tab {% if active_tab=='hmi' %}active{% endif %}"
+     style="{% if active_tab!='hmi' %}opacity:0.5{% endif %}">
+    <span class="tab-num">05</span> HMI
+    <span style="font-size:9px; color:var(--amber-dim); font-family:var(--mono);">SOON</span>
+  </a>
+  <a href="{{ url_for('comms_testing') }}" class="tab {% if active_tab=='comms' %}active{% endif %}"
+     style="{% if active_tab!='comms' %}opacity:0.5{% endif %}">
+    <span class="tab-num">06</span> Comms
+    <span style="font-size:9px; color:var(--amber-dim); font-family:var(--mono);">SOON</span>
   </a>
 </div>
 

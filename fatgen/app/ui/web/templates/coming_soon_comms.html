@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Comms Testing — Coming Soon{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">Communications Testing</div>
+  <div class="section-sub">Modbus / Profinet / OPC-UA — Feature in design</div>
+</div>
+
+<div class="card" style="border-color: var(--amber-dim);">
+  <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+    <div style="width:10px; height:10px; border-radius:50%; background:var(--amber); flex-shrink:0;"></div>
+    <div class="card-title" style="margin:0; color:var(--amber);">Planned Feature — Not Yet Built</div>
+  </div>
+  <p style="color:var(--text-dim); line-height:1.7; margin-bottom:12px;">
+    Signal-level scaling tests verify the 4–20 mA loop. Comms tests verify that the same
+    value appears correctly at every system boundary above the PLC: SCADA, historian, DCS
+    gateway, third-party safety system, or remote I/O. This is a separate, often overlooked
+    failure mode — the PLC can read correctly while Modbus register scaling or OPC tag
+    mapping is wrong.
+  </p>
+  <p style="color:var(--text-dim); line-height:1.7;">
+    Each protocol has a different test pattern. The documents generated will follow the same
+    structure as scaling tests — inject a known value at the PLC, read it back through the
+    comms interface, verify the result matches expected scaling.
+  </p>
+</div>
+
+<div class="card">
+  <div class="card-title">Protocol Coverage Planned</div>
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-top:4px;">
+
+    <div style="padding:14px; background:var(--bg3); border-radius:3px; border-top:3px solid var(--blue);">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--blue); margin-bottom:8px; letter-spacing:0.06em;">MODBUS TCP / RTU</div>
+      <ul style="color:var(--text-dim); font-size:11px; line-height:1.9; list-style:none; padding:0;">
+        <li>Register address mapping (40001–4xxxx)</li>
+        <li>Data type verification (INT16, UINT16, FLOAT32)</li>
+        <li>Read / write / read-back test cycle</li>
+        <li>Coil (0x / 1x) discrete verification</li>
+        <li>Byte order (Big/Little endian)</li>
+        <li>Scaling factor / offset check</li>
+      </ul>
+    </div>
+
+    <div style="padding:14px; background:var(--bg3); border-radius:3px; border-top:3px solid var(--green);">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--green); margin-bottom:8px; letter-spacing:0.06em;">PROFINET</div>
+      <ul style="color:var(--text-dim); font-size:11px; line-height:1.9; list-style:none; padding:0;">
+        <li>Device slot/subslot mapping</li>
+        <li>Input/output data consistency</li>
+        <li>Device status / AR state</li>
+        <li>I&amp;M data (vendor, order number)</li>
+        <li>Alarm reporting (process alarm, pull/plug)</li>
+        <li>MRP ring redundancy (if applicable)</li>
+      </ul>
+    </div>
+
+    <div style="padding:14px; background:var(--bg3); border-radius:3px; border-top:3px solid #9a7aff;">
+      <div style="font-family:var(--mono); font-size:11px; color:#9a7aff; margin-bottom:8px; letter-spacing:0.06em;">OPC-UA</div>
+      <ul style="color:var(--text-dim); font-size:11px; line-height:1.9; list-style:none; padding:0;">
+        <li>Node read by NodeId / Browse path</li>
+        <li>Data type match (Float, Int32, Bool)</li>
+        <li>Write + read-back cycle</li>
+        <li>Subscription / change notification</li>
+        <li>Security mode (None / Sign / SignEncrypt)</li>
+        <li>Historical data access (if historian present)</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">Proposed Test Table Format</div>
+  <p style="color:var(--text-dim); margin-bottom:16px; font-size:12px;">Example — Modbus register verification for FT-101:</p>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>PLC Tag</th>
+        <th>Register / Node</th>
+        <th>Data Type</th>
+        <th>PLC Simulated Value</th>
+        <th>Expected Read (scaled)</th>
+        <th>Actual Read</th>
+        <th>P / F</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono" style="color:var(--text-hi);">FT-101</td>
+        <td class="mono" style="color:var(--amber);">40001</td>
+        <td class="mono">INT16</td>
+        <td class="mono">0 counts (0%)</td>
+        <td class="mono">0 GPM</td>
+        <td style="background:var(--bg3); min-width:80px;"></td>
+        <td style="background:var(--bg3); min-width:40px;"></td>
+      </tr>
+      <tr>
+        <td class="mono" style="color:var(--text-hi);">FT-101</td>
+        <td class="mono" style="color:var(--amber);">40001</td>
+        <td class="mono">INT16</td>
+        <td class="mono">13824 counts (50%)</td>
+        <td class="mono">250 GPM</td>
+        <td style="background:var(--bg3);"></td>
+        <td style="background:var(--bg3);"></td>
+      </tr>
+      <tr>
+        <td class="mono" style="color:var(--text-hi);">FT-101</td>
+        <td class="mono" style="color:var(--amber);">40001</td>
+        <td class="mono">INT16</td>
+        <td class="mono">27648 counts (100%)</td>
+        <td class="mono">500 GPM</td>
+        <td style="background:var(--bg3);"></td>
+        <td style="background:var(--bg3);"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-title" style="color:var(--amber);">Open Questions — Needed Before Build</div>
+  <div style="display:flex; flex-direction:column; gap:16px;">
+
+    <div style="padding:14px; background:var(--bg3); border-radius:3px; border-left:3px solid var(--amber);">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--amber); margin-bottom:6px;">Q1 — Test Boundary</div>
+      <div style="color:var(--text); line-height:1.6;">
+        Are you testing at the <strong>PLC gateway output</strong> (a laptop running Modbus poll software reads
+        the PLC directly), or <strong>end-to-end</strong> (SCADA historian tag reads the PLC, you verify the
+        historian value)? This changes whether we need to track a SCADA tag name alongside the PLC address.
+      </div>
+    </div>
+
+    <div style="padding:14px; background:var(--bg3); border-radius:3px; border-left:3px solid var(--amber);">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--amber); margin-bottom:6px;">Q2 — Protocol per Project or per Tag</div>
+      <div style="color:var(--text); line-height:1.6;">
+        Is the comms protocol a <strong>project-level setting</strong> (one protocol per FAT),
+        or do individual tags route to different destinations
+        (e.g., flows go via Modbus to the DCS, safety trips go via OPC-UA to the SIS)?
+      </div>
+    </div>
+
+    <div style="padding:14px; background:var(--bg3); border-radius:3px; border-left:3px solid var(--amber);">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--amber); margin-bottom:6px;">Q3 — Register Map Source</div>
+      <div style="color:var(--text); line-height:1.6;">
+        Is the Modbus register map / OPC-UA node list something the engineer enters manually,
+        or is there an export format from the PLC IDE or gateway config tool that we could import?
+        (e.g., a CSV from Kepware, Ignition, or WinCC that maps tags to register addresses)
+      </div>
+    </div>
+
+    <div style="padding:14px; background:var(--bg3); border-radius:3px; border-left:3px solid var(--amber);">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--amber); margin-bottom:6px;">Q4 — Bi-directional (Write) Testing</div>
+      <div style="color:var(--text); line-height:1.6;">
+        For AO and DO tags — do you need to test <strong>writes from the SCADA/DCS down to the PLC</strong>
+        (e.g., SCADA writes a setpoint via Modbus, PLC acts on it)?
+        Or is comms testing read-only (verify the PLC value appears correctly at the SCADA)?
+      </div>
+    </div>
+
+    <div style="padding:14px; background:var(--bg3); border-radius:3px; border-left:3px solid var(--amber);">
+      <div style="font-family:var(--mono); font-size:11px; color:var(--amber); margin-bottom:6px;">Q5 — Profinet Priority</div>
+      <div style="color:var(--text); line-height:1.6;">
+        Profinet testing is more complex (requires a network analyzer or diagnostic tool).
+        Is this a priority for Phase 1 comms, or should Modbus TCP and OPC-UA come first?
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

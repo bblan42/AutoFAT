@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}New Logic Network{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">New Logic Network</div>
+  <div class="section-sub">Define the PLC section this network represents</div>
+</div>
+
+<form method="post" action="{{ url_for('logic_new') }}">
+  <div class="card">
+    <div class="form-grid">
+      <div class="field form-full">
+        <label>Network Name</label>
+        <input type="text" name="name" placeholder="Feed Pump P201 Start Logic" autofocus required>
+      </div>
+      <div class="field form-full">
+        <label>Description</label>
+        <textarea name="description" placeholder="Covers permissive checks, start command, run feedback latch, and fault handling for P201."></textarea>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex; gap:10px;">
+    <button type="submit" class="btn btn-primary">Create & Build →</button>
+    <a href="{{ url_for('logic_list') }}" class="btn btn-secondary">Cancel</a>
+  </div>
+</form>
+{% endblock %}

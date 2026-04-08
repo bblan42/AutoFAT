@@ -1,80 +1,138 @@
 {% extends "base.html" %}
-{% block title %}Import Tags{% endblock %}
+{% block title %}Tags{% endblock %}
 
 {% block content %}
 <div class="section-header">
-  <div class="section-title">Import Tags</div>
-  <div class="section-sub">Upload TIA Portal CSV tag export — S7-1500 / S7-300</div>
+  <div class="section-title">Tags</div>
+  <div class="section-sub">Import from CSV or manage manually</div>
 </div>
 
+<!-- CSV Import -->
 <div class="card">
-  <div class="card-title">Upload Tag List</div>
+  <div class="card-title">Import from TIA Portal CSV</div>
   <form method="post" enctype="multipart/form-data">
-    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+    <div style="display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap;">
       <div class="field" style="flex:1; min-width:260px;">
         <label>TIA Portal CSV Export</label>
         <input type="file" name="csv_file" accept=".csv" style="font-family:var(--mono); font-size:12px;">
       </div>
-      <button type="submit" class="btn btn-primary" style="align-self:flex-end">Import</button>
+      <button type="submit" class="btn btn-primary">Import</button>
     </div>
-    <div style="margin-top:10px; font-size:11px; color:var(--text-dim); font-family:var(--mono);">
-      Expected columns: Name, Path, Data Type, Logical Address, Comment
+    <div style="margin-top:8px; font-size:11px; color:var(--text-dim); font-family:var(--mono);">
+      Expected columns: Name, Path, Data Type, Logical Address, Comment — alarm bits (_HH/_H/_L/_LL) are auto-grouped.
     </div>
   </form>
 </div>
 
-{% if project.tags %}
+<!-- Tag list -->
 <div class="card">
   <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
-    <span>Tag List <span style="color:var(--text-dim); font-weight:400;">({{ project.tags|length }} tags)</span></span>
+    <span>
+      Tag List
+      <span style="color:var(--text-dim); font-weight:400; margin-left:6px;">
+        ({{ project.tags|length }} tags)
+      </span>
+    </span>
+    <a href="{{ url_for('new_tag') }}" class="btn btn-success btn-sm">+ New Tag</a>
   </div>
-  <table class="data-table">
+
+  {% if project.tags %}
+  <!-- Filter bar -->
+  <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+    <input id="tag-filter" type="text" placeholder="Filter by name or description…"
+      style="background:var(--bg3); border:1px solid var(--border); color:var(--text-hi);
+             font-family:var(--mono); font-size:12px; padding:6px 10px; border-radius:3px;
+             outline:none; flex:1; min-width:200px;">
+    <select id="io-filter"
+      style="background:var(--bg3); border:1px solid var(--border); color:var(--text);
+             font-family:var(--mono); font-size:12px; padding:6px 10px; border-radius:3px; outline:none;">
+      <option value="">All I/O types</option>
+      {% for io in io_types %}
+      <option value="{{ io.name }}">{{ io.value }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <table class="data-table" id="tag-table">
     <thead>
       <tr>
         <th>Tag Name</th>
         <th>I/O Type</th>
         <th>Address</th>
         <th>Description</th>
-        <th>Span</th>
+        <th>Span / Units</th>
+        <th>Instrument</th>
         <th>Alarms</th>
-        <th></th>
+        <th style="text-align:right;">Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for tag in project.tags %}
-      <tr>
+      <tr data-name="{{ tag.name|lower }}"
+          data-desc="{{ tag.description|lower }}"
+          data-io="{{ tag.io_type.name }}">
         <td class="mono" style="color:var(--text-hi); font-weight:500;">{{ tag.name }}</td>
         <td>
-          {% set io = tag.io_type.name %}
-          <span class="badge badge-{{ io.lower() }}">{{ tag.io_type.value }}</span>
+          {% set io = tag.io_type.name|lower %}
+          <span class="badge badge-{{ io }}">{{ tag.io_type.value }}</span>
         </td>
-        <td class="mono" style="color:var(--amber);">{{ tag.address }}</td>
-        <td style="color:var(--text-dim);">{{ tag.description or '—' }}</td>
-        <td class="mono">
+        <td class="mono" style="color:var(--amber);">{{ tag.address or '—' }}</td>
+        <td style="color:var(--text-dim); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+          {{ tag.description or '—' }}
+        </td>
+        <td class="mono" style="font-size:11px;">
           {% if tag.io_type.name in ('AI','AO') %}
-            {{ tag.span_low }}–{{ tag.span_high }} {{ tag.eng_units }}
+            {{ tag.span_low }}–{{ tag.span_high }}
+            <span style="color:var(--text-dim);">{{ tag.eng_units }}</span>
           {% else %}—{% endif %}
         </td>
+        <td style="color:var(--text-dim); font-size:11px;">{{ tag.instrument_model or '—' }}</td>
         <td>
           {% if tag.alarms %}
             {% for a in tag.alarms %}
               <span class="badge" style="background:#2e1a00; color:var(--amber); border:1px solid #5a3a00; margin-right:2px;">{{ a.level }}</span>
             {% endfor %}
-          {% else %}—{% endif %}
+          {% else %}<span style="color:var(--text-dim);">—</span>{% endif %}
         </td>
         <td>
-          <a href="{{ url_for('edit_tag', tag_name=tag.name) }}" class="btn btn-secondary btn-sm">Edit</a>
+          <div style="display:flex; gap:4px; justify-content:flex-end;">
+            <a href="{{ url_for('edit_tag', tag_name=tag.name) }}" class="btn btn-secondary btn-sm">Edit</a>
+            <form method="post" action="{{ url_for('delete_tag', tag_name=tag.name) }}"
+                  onsubmit="return confirm('Delete {{ tag.name }}?')" style="display:inline">
+              <button class="btn btn-danger btn-sm">✕</button>
+            </form>
+          </div>
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">⬆</div>
+    <div class="empty-title">No Tags</div>
+    <div>Import a CSV or add tags manually with <strong>+ New Tag</strong>.</div>
+  </div>
+  {% endif %}
 </div>
-{% else %}
-<div class="empty-state">
-  <div class="empty-icon">⬆</div>
-  <div class="empty-title">No Tags Imported</div>
-  <div>Upload a TIA Portal CSV export to populate the tag list.</div>
-</div>
-{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const filterInput = document.getElementById('tag-filter');
+  const ioSelect    = document.getElementById('io-filter');
+  if (filterInput) {
+    function applyFilter() {
+      const q  = filterInput.value.toLowerCase();
+      const io = ioSelect.value;
+      document.querySelectorAll('#tag-table tbody tr').forEach(row => {
+        const nameMatch = row.dataset.name.includes(q) || row.dataset.desc.includes(q);
+        const ioMatch   = !io || row.dataset.io === io;
+        row.style.display = nameMatch && ioMatch ? '' : 'none';
+      });
+    }
+    filterInput.addEventListener('input', applyFilter);
+    ioSelect.addEventListener('change', applyFilter);
+  }
+</script>
 {% endblock %}

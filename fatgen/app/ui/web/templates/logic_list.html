@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Logic Networks{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">Logic Networks</div>
+  <div class="section-sub">Define PLC ladder / FBD networks for custom test cases</div>
+</div>
+
+{% if networks %}
+<div class="card">
+  <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+    <span>Networks <span style="color:var(--text-dim); font-weight:400;">({{ networks|length }})</span></span>
+    <a href="{{ url_for('logic_new') }}" class="btn btn-success btn-sm">+ New Network</a>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Rungs</th>
+        <th>Test Rungs</th>
+        <th style="text-align:right;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for nid, net in networks.items() %}
+      <tr>
+        <td style="color:var(--text-hi); font-weight:500;">{{ net.name }}</td>
+        <td style="color:var(--text-dim);">{{ net.description or '—' }}</td>
+        <td class="mono">{{ net.total_rungs }}</td>
+        <td class="mono" style="color:var(--amber);">
+          {% if net.test_rung_numbers %}{{ net.test_rung_numbers | join(', ') }}{% else %}—{% endif %}
+        </td>
+        <td>
+          <div style="display:flex; gap:4px; justify-content:flex-end;">
+            <a href="{{ url_for('logic_builder', network_id=nid) }}" class="btn btn-secondary btn-sm">Edit</a>
+            <form method="post" action="{{ url_for('logic_delete', network_id=nid) }}"
+                  onsubmit="return confirm('Delete this network?')" style="display:inline">
+              <button class="btn btn-danger btn-sm">✕</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">⬡</div>
+  <div class="empty-title">No Logic Networks</div>
+  <div style="margin-bottom:20px;">Create a network to build and visualize PLC ladder logic for custom tests.</div>
+  <a href="{{ url_for('logic_new') }}" class="btn btn-primary">+ New Network</a>
+</div>
+{% endif %}
+{% endblock %}

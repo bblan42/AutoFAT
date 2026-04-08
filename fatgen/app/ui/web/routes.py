@@ -13,6 +13,7 @@ import io
 from ...models.project import Project, PLCPlatform
 from ...models.tag import Tag, IOType, SignalType, SqrtLoc
 from ...models.test_config import TestCase, TestType
+from ...models.logic import LogicNetwork, LogicRung, LogicElement, ElementType
 from ...importers.s7_csv import S7CSVImporter
 from ...renderer.docx_renderer import DocxRenderer
 
@@ -113,6 +114,60 @@ def import_tags():
                            active_tab="import")
 
 
+@app.route("/import/tag/new", methods=["GET", "POST"])
+def new_tag():
+    project = _get_project()
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        if not name:
+            flash("Tag name is required.", "error")
+            return redirect(url_for("new_tag"))
+        if any(t.name == name for t in project.tags):
+            flash(f"Tag '{name}' already exists.", "error")
+            return redirect(url_for("new_tag"))
+
+        io_str = request.form.get("io_type", "AI")
+        tag = Tag(
+            name=name,
+            description=request.form.get("description", ""),
+            io_type=IOType[io_str],
+            address=request.form.get("address", ""),
+            instrument_model=request.form.get("instrument_model", ""),
+            span_low=float(request.form.get("span_low", 0) or 0),
+            span_high=float(request.form.get("span_high", 100) or 100),
+            eng_units=request.form.get("eng_units", ""),
+            dp_range_high=float(request.form.get("dp_range_high", 100) or 100),
+            dp_units=request.form.get("dp_units", "in H2O"),
+            sqrt_extraction=SqrtLoc[request.form.get("sqrt_extraction", "NONE")],
+            notes=request.form.get("notes", ""),
+        )
+        project.tags.append(tag)
+        _save_project(project)
+        flash(f"Tag {name} created.", "success")
+        return redirect(url_for("import_tags"))
+
+    blank = Tag(name="")
+    return render_template("edit_tag.html",
+                           tag=blank,
+                           is_new=True,
+                           io_types=list(IOType),
+                           sqrt_options=list(SqrtLoc),
+                           active_tab="import")
+
+
+@app.route("/import/tag/<tag_name>/delete", methods=["POST"])
+def delete_tag(tag_name: str):
+    project = _get_project()
+    before = len(project.tags)
+    project.tags = [t for t in project.tags if t.name != tag_name]
+    if len(project.tags) < before:
+        _save_project(project)
+        flash(f"Tag {tag_name} deleted.", "success")
+    else:
+        flash("Tag not found.", "error")
+    return redirect(url_for("import_tags"))
+
+
 @app.route("/import/tag/<tag_name>", methods=["GET", "POST"])
 def edit_tag(tag_name: str):
     project = _get_project()
@@ -122,22 +177,24 @@ def edit_tag(tag_name: str):
         return redirect(url_for("import_tags"))
 
     if request.method == "POST":
-        tag.description     = request.form.get("description", tag.description)
+        tag.description      = request.form.get("description", tag.description)
+        tag.address          = request.form.get("address", tag.address)
         tag.instrument_model = request.form.get("instrument_model", "")
-        tag.span_low        = float(request.form.get("span_low", 0))
-        tag.span_high       = float(request.form.get("span_high", 100))
-        tag.eng_units       = request.form.get("eng_units", "")
-        tag.dp_range_high   = float(request.form.get("dp_range_high", 100))
-        tag.dp_units        = request.form.get("dp_units", "in H2O")
-        sqrt_str            = request.form.get("sqrt_extraction", "NONE")
-        tag.sqrt_extraction = SqrtLoc[sqrt_str]
-        tag.notes           = request.form.get("notes", "")
+        tag.span_low         = float(request.form.get("span_low", 0) or 0)
+        tag.span_high        = float(request.form.get("span_high", 100) or 100)
+        tag.eng_units        = request.form.get("eng_units", "")
+        tag.dp_range_high    = float(request.form.get("dp_range_high", 100) or 100)
+        tag.dp_units         = request.form.get("dp_units", "in H2O")
+        tag.sqrt_extraction  = SqrtLoc[request.form.get("sqrt_extraction", "NONE")]
+        tag.notes            = request.form.get("notes", "")
         _save_project(project)
         flash(f"Tag {tag_name} updated.", "success")
         return redirect(url_for("import_tags"))
 
     return render_template("edit_tag.html",
                            tag=tag,
+                           is_new=False,
+                           io_types=list(IOType),
                            sqrt_options=list(SqrtLoc),
                            active_tab="import")
 
@@ -254,6 +311,133 @@ def export_project():
     filename = f"{project.project_number or 'project'}.fatgen"
     return send_file(buf, as_attachment=True, download_name=filename,
                      mimetype="application/json")
+
+
+def _get_networks() -> dict[str, LogicNetwork]:
+    pid = session.get("project_id")
+    key = f"{pid}_networks"
+    raw = _PROJECTS.get(key, {})
+    return {nid: LogicNetwork.from_dict(d) for nid, d in raw.items()}
+
+
+def _save_networks(networks: dict[str, LogicNetwork]):
+    pid = session.get("project_id")
+    key = f"{pid}_networks"
+    _PROJECTS[key] = {nid: n.to_dict() for nid, n in networks.items()}
+
+
+@app.route("/logic")
+def logic_list():
+    networks = _get_networks()
+    return render_template("logic_list.html",
+                           networks=networks,
+                           active_tab="tests")
+
+
+@app.route("/logic/new", methods=["GET", "POST"])
+def logic_new():
+    if request.method == "POST":
+        nid = str(uuid.uuid4())[:8]
+        network = LogicNetwork(
+            network_id=nid,
+            name=request.form.get("name", "Untitled Network"),
+            description=request.form.get("description", ""),
+        )
+        networks = _get_networks()
+        networks[nid] = network
+        _save_networks(networks)
+        return redirect(url_for("logic_builder", network_id=nid))
+    return render_template("logic_new.html", active_tab="tests")
+
+
+@app.route("/logic/<network_id>", methods=["GET", "POST"])
+def logic_builder(network_id: str):
+    networks = _get_networks()
+    network = networks.get(network_id)
+    if network is None:
+        flash("Logic network not found.", "error")
+        return redirect(url_for("logic_list"))
+
+    if request.method == "POST":
+        action = request.form.get("action")
+
+        if action == "save_meta":
+            network.name = request.form.get("name", network.name)
+            network.description = request.form.get("description", network.description)
+            test_rungs_raw = request.form.get("test_rung_numbers", "")
+            try:
+                network.test_rung_numbers = [
+                    int(x.strip()) for x in test_rungs_raw.split(",") if x.strip()
+                ]
+            except ValueError:
+                pass
+
+        elif action == "add_rung":
+            rung_num = len(network.rungs) + 1
+            network.rungs.append(LogicRung(
+                rung_number=rung_num,
+                description=request.form.get("rung_description", ""),
+            ))
+
+        elif action == "delete_rung":
+            idx = int(request.form.get("rung_index", -1))
+            if 0 <= idx < len(network.rungs):
+                network.rungs.pop(idx)
+                for i, r in enumerate(network.rungs):
+                    r.rung_number = i + 1
+
+        elif action == "add_element":
+            rung_idx = int(request.form.get("rung_index", 0))
+            if 0 <= rung_idx < len(network.rungs):
+                el = LogicElement(
+                    element_type=request.form.get("element_type", "NO_CONTACT"),
+                    tag=request.form.get("el_tag", ""),
+                    address=request.form.get("el_address", ""),
+                    label=request.form.get("el_label", ""),
+                    parameter=request.form.get("el_parameter", ""),
+                    branch_id=int(request.form.get("el_branch", 0) or 0),
+                    comment=request.form.get("el_comment", ""),
+                )
+                network.rungs[rung_idx].elements.append(el)
+
+        elif action == "delete_element":
+            rung_idx = int(request.form.get("rung_index", 0))
+            el_idx   = int(request.form.get("el_index", -1))
+            if 0 <= rung_idx < len(network.rungs):
+                rung = network.rungs[rung_idx]
+                if 0 <= el_idx < len(rung.elements):
+                    rung.elements.pop(el_idx)
+
+        networks[network_id] = network
+        _save_networks(networks)
+        return redirect(url_for("logic_builder", network_id=network_id))
+
+    project = _get_project()
+    return render_template("logic_builder.html",
+                           network=network,
+                           element_types=list(ElementType),
+                           project_tags=project.tags,
+                           active_tab="tests")
+
+
+@app.route("/logic/<network_id>/delete", methods=["POST"])
+def logic_delete(network_id: str):
+    networks = _get_networks()
+    if network_id in networks:
+        name = networks.pop(network_id).name
+        _save_networks(networks)
+        flash(f"Deleted network '{name}'.", "success")
+    return redirect(url_for("logic_list"))
+
+
+@app.route("/hmi-testing")
+def hmi_testing():
+    return render_template("coming_soon_hmi.html", active_tab="hmi")
+
+
+@app.route("/comms-testing")
+def comms_testing():
+    return render_template("coming_soon_comms.html", active_tab="comms")
 
 
 @app.route("/project/import-file", methods=["POST"])

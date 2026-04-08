@@ -1,73 +1,135 @@
 {% extends "base.html" %}
-{% block title %}Edit Tag — {{ tag.name }}{% endblock %}
+{% block title %}{% if is_new %}New Tag{% else %}Edit Tag — {{ tag.name }}{% endif %}{% endblock %}
 
 {% block content %}
 <div class="section-header">
-  <div class="section-title">Edit Tag</div>
-  <div class="section-sub" style="font-family:var(--mono); color:var(--amber);">{{ tag.name }} — {{ tag.address }}</div>
+  <div class="section-title">{% if is_new %}New Tag{% else %}Edit Tag{% endif %}</div>
+  {% if not is_new %}
+  <div class="section-sub" style="font-family:var(--mono); color:var(--amber);">
+    {{ tag.name }} — {{ tag.address }}
+  </div>
+  {% endif %}
 </div>
 
-<form method="post">
+<form method="post" action="{% if is_new %}{{ url_for('new_tag') }}{% else %}{{ url_for('edit_tag', tag_name=tag.name) }}{% endif %}">
   <div class="card">
-    <div class="card-title">Tag Properties</div>
+    <div class="card-title">Identification</div>
     <div class="form-grid">
-      <div class="field form-full">
+      <div class="field">
+        <label>Tag Name</label>
+        {% if is_new %}
+          <input type="text" name="name" value="{{ tag.name }}" placeholder="FT-101" required autofocus>
+        {% else %}
+          <input type="text" value="{{ tag.name }}" disabled
+            style="opacity:0.5; cursor:not-allowed;">
+        {% endif %}
+      </div>
+      <div class="field">
+        <label>I/O Type</label>
+        {% if is_new %}
+          <select name="io_type" id="io-type-select" onchange="updateFields()">
+            {% for io in io_types %}
+            {% if io.name not in ('MEM','DB','UNKNOWN') %}
+            <option value="{{ io.name }}" {% if tag.io_type == io %}selected{% endif %}>{{ io.value }}</option>
+            {% endif %}
+            {% endfor %}
+          </select>
+        {% else %}
+          <input type="text" value="{{ tag.io_type.value }}" disabled style="opacity:0.5; cursor:not-allowed;">
+          <input type="hidden" name="io_type" value="{{ tag.io_type.name }}">
+        {% endif %}
+      </div>
+      <div class="field">
+        <label>PLC Address</label>
+        <input type="text" name="address" value="{{ tag.address }}"
+          placeholder="{% if tag.io_type.name == 'AI' %}%IW64{% elif tag.io_type.name == 'AO' %}%QW80{% elif tag.io_type.name == 'DI' %}%I0.0{% else %}%Q0.0{% endif %}">
+      </div>
+      <div class="field">
         <label>Description</label>
-        <input type="text" name="description" value="{{ tag.description }}">
+        <input type="text" name="description" value="{{ tag.description }}"
+          placeholder="Reactor Feed Flow">
       </div>
       <div class="field">
         <label>Instrument Model</label>
-        <input type="text" name="instrument_model" value="{{ tag.instrument_model }}" placeholder="Rosemount 3051 CD">
+        <input type="text" name="instrument_model" value="{{ tag.instrument_model }}"
+          placeholder="Rosemount 3051 CD">
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="analog-section"
+    {% if not is_new and tag.io_type.name not in ('AI','AO') %}style="display:none"{% endif %}>
+    <div class="card-title">Analog Scaling</div>
+    <div class="form-grid-3">
+      <div class="field">
+        <label>Span Low</label>
+        <input type="number" step="any" name="span_low" value="{{ tag.span_low }}" placeholder="0.0">
+      </div>
+      <div class="field">
+        <label>Span High</label>
+        <input type="number" step="any" name="span_high" value="{{ tag.span_high }}" placeholder="100.0">
       </div>
       <div class="field">
         <label>Engineering Units</label>
         <input type="text" name="eng_units" value="{{ tag.eng_units }}" placeholder="GPM">
       </div>
-    </div>
-  </div>
-
-  {% if tag.io_type.name in ('AI', 'AO') %}
-  <div class="card">
-    <div class="card-title">Scaling</div>
-    <div class="form-grid-3">
-      <div class="field">
-        <label>Span Low</label>
-        <input type="number" step="any" name="span_low" value="{{ tag.span_low }}">
-      </div>
-      <div class="field">
-        <label>Span High</label>
-        <input type="number" step="any" name="span_high" value="{{ tag.span_high }}">
-      </div>
       <div class="field">
         <label>√ Extraction</label>
-        <select name="sqrt_extraction">
+        <select name="sqrt_extraction" id="sqrt-select" onchange="updateSqrt()">
           {% for opt in sqrt_options %}
           <option value="{{ opt.name }}" {% if tag.sqrt_extraction == opt %}selected{% endif %}>{{ opt.value }}</option>
           {% endfor %}
         </select>
       </div>
-      <div class="field">
+      <div class="field" id="dp-high-field" {% if tag.sqrt_extraction.name == 'NONE' %}style="display:none"{% endif %}>
         <label>DP Range High</label>
-        <input type="number" step="any" name="dp_range_high" value="{{ tag.dp_range_high }}">
+        <input type="number" step="any" name="dp_range_high" value="{{ tag.dp_range_high }}" placeholder="250.0">
       </div>
-      <div class="field">
+      <div class="field" id="dp-units-field" {% if tag.sqrt_extraction.name == 'NONE' %}style="display:none"{% endif %}>
         <label>DP Units</label>
         <input type="text" name="dp_units" value="{{ tag.dp_units }}" placeholder="in H2O">
       </div>
     </div>
   </div>
-  {% endif %}
 
   <div class="card">
     <div class="card-title">Notes</div>
     <div class="field">
-      <textarea name="notes">{{ tag.notes }}</textarea>
+      <textarea name="notes" placeholder="Optional — interlock references, special test conditions, etc.">{{ tag.notes }}</textarea>
     </div>
   </div>
 
   <div style="display:flex; gap:10px;">
-    <button type="submit" class="btn btn-primary">Save Tag</button>
+    <button type="submit" class="btn btn-primary">
+      {% if is_new %}Create Tag{% else %}Save Changes{% endif %}
+    </button>
     <a href="{{ url_for('import_tags') }}" class="btn btn-secondary">Cancel</a>
   </div>
 </form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateFields() {
+  const io = document.getElementById('io-type-select');
+  const analog = document.getElementById('analog-section');
+  if (!io || !analog) return;
+  const isAnalog = ['AI','AO'].includes(io.value);
+  analog.style.display = isAnalog ? '' : 'none';
+}
+
+function updateSqrt() {
+  const sel = document.getElementById('sqrt-select');
+  const dpHigh  = document.getElementById('dp-high-field');
+  const dpUnits = document.getElementById('dp-units-field');
+  if (!sel) return;
+  const show = sel.value !== 'NONE';
+  if (dpHigh)  dpHigh.style.display  = show ? '' : 'none';
+  if (dpUnits) dpUnits.style.display = show ? '' : 'none';
+}
+
+// Init on load
+updateFields();
+updateSqrt();
+</script>
 {% endblock %}

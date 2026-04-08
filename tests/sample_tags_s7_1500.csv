@@ -1,0 +1,61 @@
+Name,Path,Data Type,Logical Address,Comment
+FT_101,Default tag table,Int,%IW64,Reactor Feed Flow Raw
+FT_101_EU,Default tag table,Real,%MD100,Reactor Feed Flow GPM
+FT_101_HH,Default tag table,Bool,%M100.3,Feed Flow High High Alarm
+FT_101_H,Default tag table,Bool,%M100.2,Feed Flow High Alarm
+FT_101_L,Default tag table,Bool,%M100.1,Feed Flow Low Alarm
+FT_101_LL,Default tag table,Bool,%M100.0,Feed Flow Low Low Alarm
+PT_201,Default tag table,Int,%IW66,Reactor Inlet Pressure Raw
+PT_201_EU,Default tag table,Real,%MD104,Reactor Inlet Pressure PSIG
+PT_201_HH,Default tag table,Bool,%M101.3,Inlet Pressure High High Alarm
+PT_201_H,Default tag table,Bool,%M101.2,Inlet Pressure High Alarm
+PT_201_LL,Default tag table,Bool,%M101.0,Inlet Pressure Low Low Alarm
+TT_301,Default tag table,Int,%IW68,Reactor Outlet Temperature Raw
+TT_301_EU,Default tag table,Real,%MD108,Reactor Outlet Temperature DEG F
+TT_301_HH,Default tag table,Bool,%M102.3,Outlet Temp High High Alarm
+TT_301_H,Default tag table,Bool,%M102.2,Outlet Temp High Alarm
+LT_401,Default tag table,Int,%IW70,Separator Level Raw
+LT_401_EU,Default tag table,Real,%MD112,Separator Level PCT
+LT_401_H,Default tag table,Bool,%M103.2,Level High Alarm
+LT_401_L,Default tag table,Bool,%M103.1,Level Low Alarm
+LT_401_LL,Default tag table,Bool,%M103.0,Level Low Low Alarm
+AT_501,Default tag table,Int,%IW72,Product Analyzer H2S Raw
+AT_501_EU,Default tag table,Real,%MD116,Product Analyzer H2S PPM
+AT_501_HH,Default tag table,Bool,%M104.3,H2S High High Alarm
+AT_501_H,Default tag table,Bool,%M104.2,H2S High Alarm
+FT_102,Default tag table,Int,%IW74,Recycle Gas Flow Raw
+FT_102_EU,Default tag table,Real,%MD120,Recycle Gas Flow MSCFD
+FT_102_HH,Default tag table,Bool,%M105.3,Recycle Flow High High Alarm
+FT_102_LL,Default tag table,Bool,%M105.0,Recycle Flow Low Low Alarm
+PT_202,Default tag table,Int,%IW76,Separator Pressure Raw
+PT_202_EU,Default tag table,Real,%MD124,Separator Pressure PSIG
+PT_202_HH,Default tag table,Bool,%M106.3,Separator Pressure High High Alarm
+PT_202_H,Default tag table,Bool,%M106.2,Separator Pressure High Alarm
+AO_HV301,Default tag table,Int,%QW80,Reactor Inlet Control Valve Command
+AO_HV301_PV,Default tag table,Real,%MD128,Reactor Inlet Control Valve Position PCT
+AO_PY201,Default tag table,Int,%QW82,Recycle Compressor Speed Command
+AO_PY201_PV,Default tag table,Real,%MD132,Recycle Compressor Speed PCT
+HS_101_OPEN,Default tag table,Bool,%I0.0,Feed Isolation Valve Open LS
+HS_101_CLOSE,Default tag table,Bool,%I0.1,Feed Isolation Valve Closed LS
+HS_201_OPEN,Default tag table,Bool,%I0.2,Separator Outlet Valve Open LS
+HS_201_CLOSE,Default tag table,Bool,%I0.3,Separator Outlet Valve Closed LS
+PSH_301,Default tag table,Bool,%I0.4,Reactor High Pressure Safety Switch
+PSL_301,Default tag table,Bool,%I0.5,Reactor Low Pressure Safety Switch
+TSH_401,Default tag table,Bool,%I0.6,Reactor High Temperature Safety Switch
+LSHH_401,Default tag table,Bool,%I0.7,Separator High High Level Safety Switch
+ZSO_HV101,Default tag table,Bool,%Q1.0,Feed Isolation Valve Open Command
+ZSC_HV101,Default tag table,Bool,%Q1.1,Feed Isolation Valve Close Command
+ZSO_HV201,Default tag table,Bool,%Q1.2,Separator Outlet Valve Open Command
+ZSC_HV201,Default tag table,Bool,%Q1.3,Separator Outlet Valve Close Command
+P201_START,Default tag table,Bool,%Q0.0,Feed Pump Start Command
+P201_STOP,Default tag table,Bool,%Q0.1,Feed Pump Stop Command
+P201_RUN,Default tag table,Bool,%I1.0,Feed Pump Run Feedback
+P201_FAULT,Default tag table,Bool,%I1.1,Feed Pump Fault
+P202_START,Default tag table,Bool,%Q0.2,Spare Pump Start Command
+P202_STOP,Default tag table,Bool,%Q0.3,Spare Pump Stop Command
+P202_RUN,Default tag table,Bool,%I1.2,Spare Pump Run Feedback
+P202_FAULT,Default tag table,Bool,%I1.3,Spare Pump Fault
+P301_START,Default tag table,Bool,%Q0.4,Product Transfer Pump Start Command
+P301_STOP,Default tag table,Bool,%Q0.5,Product Transfer Pump Stop Command
+P301_RUN,Default tag table,Bool,%I1.4,Product Transfer Pump Run Feedback
+P301_FAULT,Default tag table,Bool,%I1.5,Product Transfer Pump Fault
